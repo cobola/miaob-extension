@@ -27,7 +27,9 @@ jobs:
           version: latest
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm rebuild esbuild
 
       - name: Build extension
         run: pnpm run build
