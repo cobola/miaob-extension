@@ -1,4 +1,4 @@
-import type { TextError } from './shared/types'
+import type { TextError } from '../shared/types'
 
 // 错误标注器
 export class ErrorMarker {

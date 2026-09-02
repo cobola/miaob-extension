@@ -1,5 +1,5 @@
 // Content Script - 注入到页面
-import type { TextError, UserConfig } from './shared/types'
+import type { TextError, UserConfig } from '../shared/types'
 import { TextExtractor } from './extractor'
 import { TextChecker } from './checker'
 import { ErrorMarker } from './marker'

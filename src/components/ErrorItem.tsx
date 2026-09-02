@@ -1,4 +1,4 @@
-import { TextError } from './shared/types'
+import { TextError } from '../shared/types'
 import { FeedbackButtons } from './FeedbackButtons'
 
 interface ErrorItemProps {

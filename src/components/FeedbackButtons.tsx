@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TextError } from './shared/types'
+import { TextError } from '../shared/types'
 
 interface FeedbackButtonsProps {
   error: TextError

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { TextError } from './shared/types'
+import { TextError } from '../shared/types'
 import { ErrorItem } from './ErrorItem'
 import { CreditsDisplay } from './CreditsDisplay'
 import { ActivationPrompt } from './ActivationPrompt'

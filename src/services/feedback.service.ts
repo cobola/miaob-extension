@@ -1,4 +1,4 @@
-import { TextError } from './shared/types'
+import { TextError } from '../shared/types'
 import { getFingerprint } from '../lib/fingerprint'
 
 async function getApiUrl(): Promise<string> {

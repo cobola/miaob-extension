@@ -1,4 +1,4 @@
-import { Strictness, type UserConfig } from './shared/types'
+import { Strictness, type UserConfig } from '../shared/types'
 
 // Background Service Worker - activeTab 模式
 console.log('妙笔 Background Service Worker 已启动')

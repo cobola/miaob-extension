@@ -1,4 +1,4 @@
-import type { TextError } from './shared/types'
+import type { TextError } from '../shared/types'
 
 export interface IdiomMatch {
   idiom: string
