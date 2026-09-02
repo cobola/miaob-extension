@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>妙笔 - 设置</title>
+  <style>
+    body { font-family: -apple-system, 'PingFang SC', sans-serif; margin: 0; padding: 24px; background: #f8fafc; color: #1e293b; }
+    .card { max-width: 480px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    h1 { font-size: 20px; margin: 0 0 16px; }
+    .row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+    .row:last-child { border-bottom: none; }
+    .label { font-size: 14px; color: #475569; }
+    .value { font-size: 14px; font-weight: 600; color: #1e293b; }
+    .btn { display: block; width: 100%; padding: 10px; margin-top: 16px; border: none; border-radius: 8px; background: #4f46e5; color: #fff; font-size: 14px; cursor: pointer; }
+    .btn:hover { background: #4338ca; }
+    .btn-secondary { background: #e2e8f0; color: #334155; }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .status { padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
+    .status.ok { background: #dcfce7; color: #166534; }
+    .status.warn { background: #fef3c7; color: #92400e; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>⚙️ 妙笔设置</h1>
+    <div id="status" class="status warn" style="display:none"></div>
+    <div class="row">
+      <span class="label">用户 ID</span>
+      <span class="value" id="userId">-</span>
+    </div>
+    <div class="row">
+      <span class="label">积分</span>
+      <span class="value" id="credits">-</span>
+    </div>
+    <div class="row">
+      <span class="label">激活状态</span>
+      <span class="value" id="activated">-</span>
+    </div>
+    <div class="row">
+      <span class="label">检查严格度</span>
+      <span class="value" id="strictness">-</span>
+    </div>
+    <button class="btn" id="activateBtn" style="display:none">微信扫码激活</button>
+    <button class="btn btn-secondary" id="backBtn">返回</button>
+  </div>
+  <script>
+    async function load() {
+      const stored = await chrome.storage.local.get(['userId', 'credits', 'isActivated'])
+      const cfg = await chrome.storage.sync.get(['config'])
+      document.getElementById('userId').textContent = stored.userId || '未创建'
+      document.getElementById('credits').textContent = stored.credits != null ? stored.credits + ' 分' : '-'
+      document.getElementById('activated').textContent = stored.isActivated ? '已激活' : '未激活'
+      document.getElementById('strictness').textContent = cfg.config?.strictness || 'standard'
+      if (!stored.isActivated) {
+        document.getElementById('activateBtn').style.display = 'block'
+      }
+    }
+    document.getElementById('backBtn').onclick = () => window.close()
+    document.getElementById('activateBtn').onclick = () => {
+      alert('激活功能请通过扩展弹窗使用（开发中）')
+    }
+    load()
+  </script>
+</body>
+</html>

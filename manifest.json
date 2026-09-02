@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extensionName__",
+  "version": "0.6.17",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "zh_CN",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting",
+    "contextMenus"
+  ],
+  "background": {
+    "service_worker": "src/background/index.ts",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "妙笔",
+    "default_icon": {
+      "16": "src/assets/icons/icon16.png",
+      "48": "src/assets/icons/icon48.png",
+      "128": "src/assets/icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "src/assets/icons/icon16.png",
+    "48": "src/assets/icons/icon48.png",
+    "128": "src/assets/icons/icon128.png"
+  }
+}
