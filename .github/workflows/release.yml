@@ -26,7 +26,7 @@ jobs:
         run: npm install
 
       - name: Build extension
-        run: pnpm run build
+        run: npm run build
 
       - name: Package extension
         run: |
