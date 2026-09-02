@@ -27,9 +27,7 @@ jobs:
           version: latest
 
       - name: Install dependencies
-        run: |
-          pnpm config set enable-pre-post-scripts true
-          pnpm install --no-frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Build extension
         run: pnpm run build
