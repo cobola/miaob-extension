@@ -1,6 +1,6 @@
 {
   "name": "miaob-extension",
-  "version": "0.6.17",
+  "version": "0.6.18",
   "description": "妙笔 - 中文网页阅读增强 Chrome 扩展",
   "type": "module",
   "scripts": {

@@ -21,21 +21,50 @@ chrome.runtime.onInstalled.addListener(() => {
   })
 })
 
-// 点击扩展图标：直接检查当前页（无 popup）
+// 注入内容脚本到指定标签页（如已注入则发送消息触发检查）
+async function injectContentScript(tabId: number) {
+  try {
+    // 尝试注入，如果已存在会报错，忽略即可
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ['content.js'],
+    })
+  } catch (_) {
+    // 已注入，发送消息触发检查
+    try {
+      await chrome.tabs.sendMessage(tabId, { type: 'RUN_CHECK' })
+    } catch (_) {}
+  }
+  // 注入 CSS（幂等，重复注入无影响）
+  try {
+    await chrome.scripting.insertCSS({
+      target: { tabId },
+      files: ['content.css'],
+    })
+  } catch (_) {}
+}
+
+// 点击扩展图标：直接检查当前页
 chrome.action.onClicked.addListener((tab) => {
   if (!tab?.id) return
-  // content.js 是 IIFE 格式，用 files 注入
-  chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    files: ['content.js'],
-  }).catch((err) => {
-    console.error('注入 content script 失败:', err)
-  })
-  // 同时注入 content.css（esbuild 提取的样式文件）
-  chrome.scripting.insertCSS({
-    target: { tabId: tab.id },
-    files: ['content.css'],
-  }).catch(() => {})
+  injectContentScript(tab.id)
+})
+
+// 标签页切换激活时自动检查
+chrome.tabs.onActivated.addListener(async (activeInfo) => {
+  try {
+    const tab = await chrome.tabs.get(activeInfo.tabId)
+    if (tab.url?.startsWith('http')) {
+      injectContentScript(activeInfo.tabId)
+    }
+  } catch (_) {}
+})
+
+// 标签页更新（导航/刷新）时自动检查
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === 'complete' && tab.url?.startsWith('http')) {
+    injectContentScript(tabId)
+  }
 })
 
 // 右键菜单点击
