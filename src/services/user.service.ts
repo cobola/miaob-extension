@@ -1,7 +1,6 @@
 import { getFingerprint } from '../lib/fingerprint'
 
 const WECHAT_BASE = 'https://wx.3198.net'
-const MI_APP_KEY = 'MfVbFyEfzRqKXRnP_UnL24eQZTibBFwC'
 
 async function getApiUrl(): Promise<string> {
   return new Promise((resolve) => {
@@ -71,13 +70,10 @@ export class UserService {
     return response.json()
   }
 
-  /** 4. 获取微信登录二维码 */
+  /** 4. 获取微信登录二维码（通过服务端代理，返回 base64 data URL） */
   async getWechatQrcode(): Promise<{ ok: boolean; sessionId: string; qrcodeUrl: string; expiresAt: number }> {
-    const response = await fetch(`${WECHAT_BASE}/auth/wechat/qrcode`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ app_key: MI_APP_KEY }),
-    })
+    const apiUrl = await getApiUrl()
+    const response = await fetch(`${apiUrl}/api/user/activation/qrcode`)
     if (!response.ok) throw new Error('Failed to get qrcode')
     return response.json()
   }
