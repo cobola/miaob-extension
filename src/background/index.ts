@@ -305,7 +305,6 @@ async function handleWechatQrcode() {
 }
 
 async function handleActivationStart(userId: string) {
-  if (!userId) throw new Error('userId is required')
   const apiUrl = await getApiUrlCached()
   return fetchProxy(`${apiUrl}/api/user/activation/start`, {
     method: 'POST',
@@ -315,14 +314,11 @@ async function handleActivationStart(userId: string) {
 }
 
 async function handleActivationStatus(sessionId: string) {
-  if (!sessionId) throw new Error('sessionId is required')
   const apiUrl = await getApiUrlCached()
   return fetchProxy(`${apiUrl}/api/user/activation/status?sessionId=${sessionId}`)
 }
 
 async function handleActivationComplete(userId: string, openid: string) {
-  if (!userId) throw new Error('userId is required')
-  if (!openid) throw new Error('openid is required')
   const apiUrl = await getApiUrlCached()
   return fetchProxy(`${apiUrl}/api/user/activation/complete`, {
     method: 'POST',
@@ -332,12 +328,10 @@ async function handleActivationComplete(userId: string, openid: string) {
 }
 
 async function handleWechatStatus(sessionId: string) {
-  if (!sessionId) throw new Error('sessionId is required')
   return fetchProxy(`${WECHAT_BASE}/auth/wechat/status?sessionId=${sessionId}`)
 }
 
 async function handleWechatScanLogin(sessionId: string) {
-  if (!sessionId) throw new Error('sessionId is required')
   return fetchProxy(`${WECHAT_BASE}/auth/wechat/scan-login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -347,7 +341,6 @@ async function handleWechatScanLogin(sessionId: string) {
 
 // 用户相关（也走 background 避免 CORS）
 async function handleCreateAnonymous(fingerprint: string) {
-  if (!fingerprint) throw new Error('fingerprint is required')
   const apiUrl = await getApiUrlCached()
   return fetchProxy(`${apiUrl}/api/user/create-anonymous`, {
     method: 'POST',
@@ -357,7 +350,6 @@ async function handleCreateAnonymous(fingerprint: string) {
 }
 
 async function handleGetProfile(userId: string) {
-  if (!userId) throw new Error('userId is required')
   const apiUrl = await getApiUrlCached()
   return fetchProxy(`${apiUrl}/api/user/profile/${userId}`)
 }
