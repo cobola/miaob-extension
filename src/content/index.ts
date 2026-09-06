@@ -124,6 +124,15 @@ class MiaobContent {
     this.watchPageContent()
 
     this.setupKeyboardShortcuts()
+
+    // 标签页切回可见时，仅检查尚未检查过的内容
+    if (this.config.autoCheck) {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          this.checkPageContent()
+        }
+      })
+    }
   }
 
   async initializeUser() {
