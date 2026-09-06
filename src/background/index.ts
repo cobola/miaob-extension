@@ -171,6 +171,21 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       .catch(error => sendResponse({ success: false, error: error.message }))
     return true
   }
+
+  // 用户相关（也走 background 避免 CORS）
+  if (message.type === 'CREATE_ANONYMOUS') {
+    handleCreateAnonymous(message.fingerprint as string)
+      .then(data => sendResponse({ success: true, data }))
+      .catch(error => sendResponse({ success: false, error: error.message }))
+    return true
+  }
+
+  if (message.type === 'GET_PROFILE') {
+    handleGetProfile(message.userId as string)
+      .then(data => sendResponse({ success: true, data }))
+      .catch(error => sendResponse({ success: false, error: error.message }))
+    return true
+  }
 })
 
 /**
@@ -251,61 +266,100 @@ function showSelectionCard(data: {
 
 // ===== 激活 API 处理器（background 代理绕过 CORS） =====
 const WECHAT_BASE = 'https://wx.3198.net'
+const API_TIMEOUT_MS = 30000 // 激活接口 30 秒超时
+
+/** 通用 fetch 代理：自动注入超时、解析 JSON、统一错误 */
+async function fetchProxy(url: string, options?: RequestInit): Promise<any> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal })
+    if (!response.ok) {
+      const errBody = await response.text().catch(() => '')
+      throw new Error(`HTTP ${response.status}${errBody ? ': ' + errBody.slice(0, 200) : ''}`)
+    }
+    return await response.json()
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new Error(`Request timeout (${API_TIMEOUT_MS / 1000}s)`)
+    }
+    throw error
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/** 获取 API 地址（带缓存，避免重复读取 storage） */
+let cachedApiUrl: string | null = null
+function getApiUrlCached(): Promise<string> {
+  if (cachedApiUrl) return Promise.resolve(cachedApiUrl)
+  return getConfig().then(cfg => {
+    cachedApiUrl = cfg.apiUrl || 'https://api.miaob.net'
+    return cachedApiUrl
+  })
+}
 
 async function handleWechatQrcode() {
-  const config = await getConfig()
-  const apiUrl = config.apiUrl || 'https://api.miaob.net'
-  const response = await fetch(`${apiUrl}/api/user/activation/qrcode`)
-  if (!response.ok) throw new Error('Failed to get qrcode')
-  return response.json()
+  const apiUrl = await getApiUrlCached()
+  return fetchProxy(`${apiUrl}/api/user/activation/qrcode`)
 }
 
 async function handleActivationStart(userId: string) {
-  const config = await getConfig()
-  const apiUrl = config.apiUrl || 'https://api.miaob.net'
-  const response = await fetch(`${apiUrl}/api/user/activation/start`, {
+  if (!userId) throw new Error('userId is required')
+  const apiUrl = await getApiUrlCached()
+  return fetchProxy(`${apiUrl}/api/user/activation/start`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId }),
   })
-  if (!response.ok) throw new Error('Failed to start activation')
-  return response.json()
 }
 
 async function handleActivationStatus(sessionId: string) {
-  const config = await getConfig()
-  const apiUrl = config.apiUrl || 'https://api.miaob.net'
-  const response = await fetch(`${apiUrl}/api/user/activation/status?sessionId=${sessionId}`)
-  if (!response.ok) throw new Error('Failed to get activation status')
-  return response.json()
+  if (!sessionId) throw new Error('sessionId is required')
+  const apiUrl = await getApiUrlCached()
+  return fetchProxy(`${apiUrl}/api/user/activation/status?sessionId=${sessionId}`)
 }
 
 async function handleActivationComplete(userId: string, openid: string) {
-  const config = await getConfig()
-  const apiUrl = config.apiUrl || 'https://api.miaob.net'
-  const response = await fetch(`${apiUrl}/api/user/activation/complete`, {
+  if (!userId) throw new Error('userId is required')
+  if (!openid) throw new Error('openid is required')
+  const apiUrl = await getApiUrlCached()
+  return fetchProxy(`${apiUrl}/api/user/activation/complete`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, openid }),
   })
-  if (!response.ok) throw new Error('Failed to complete activation')
-  return response.json()
 }
 
 async function handleWechatStatus(sessionId: string) {
-  const response = await fetch(`${WECHAT_BASE}/auth/wechat/status?sessionId=${sessionId}`)
-  if (!response.ok) throw new Error('Failed to get wechat status')
-  return response.json()
+  if (!sessionId) throw new Error('sessionId is required')
+  return fetchProxy(`${WECHAT_BASE}/auth/wechat/status?sessionId=${sessionId}`)
 }
 
 async function handleWechatScanLogin(sessionId: string) {
-  const response = await fetch(`${WECHAT_BASE}/auth/wechat/scan-login`, {
+  if (!sessionId) throw new Error('sessionId is required')
+  return fetchProxy(`${WECHAT_BASE}/auth/wechat/scan-login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ sessionId }),
   })
-  if (!response.ok) throw new Error('Failed to scan login')
-  return response.json()
+}
+
+// 用户相关（也走 background 避免 CORS）
+async function handleCreateAnonymous(fingerprint: string) {
+  if (!fingerprint) throw new Error('fingerprint is required')
+  const apiUrl = await getApiUrlCached()
+  return fetchProxy(`${apiUrl}/api/user/create-anonymous`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fingerprint }),
+  })
+}
+
+async function handleGetProfile(userId: string) {
+  if (!userId) throw new Error('userId is required')
+  const apiUrl = await getApiUrlCached()
+  return fetchProxy(`${apiUrl}/api/user/profile/${userId}`)
 }
 
 async function handleTextCheck(data: { text: string }) {
