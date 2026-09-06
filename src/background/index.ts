@@ -128,6 +128,49 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       .catch(error => sendResponse({ success: false, error: error.message }))
     return true
   }
+
+  // 激活相关 API（background 代理，绕过 CORS）
+  if (message.type === 'WECHAT_QRCODE') {
+    handleWechatQrcode()
+      .then(data => sendResponse({ success: true, data }))
+      .catch(error => sendResponse({ success: false, error: error.message }))
+    return true
+  }
+
+  if (message.type === 'ACTIVATION_START') {
+    handleActivationStart(message.userId)
+      .then(data => sendResponse({ success: true, data }))
+      .catch(error => sendResponse({ success: false, error: error.message }))
+    return true
+  }
+
+  if (message.type === 'ACTIVATION_STATUS') {
+    handleActivationStatus(message.sessionId)
+      .then(data => sendResponse({ success: true, data }))
+      .catch(error => sendResponse({ success: false, error: error.message }))
+    return true
+  }
+
+  if (message.type === 'ACTIVATION_COMPLETE') {
+    handleActivationComplete(message.userId, message.openid)
+      .then(data => sendResponse({ success: true, data }))
+      .catch(error => sendResponse({ success: false, error: error.message }))
+    return true
+  }
+
+  if (message.type === 'WECHAT_STATUS') {
+    handleWechatStatus(message.sessionId)
+      .then(data => sendResponse({ success: true, data }))
+      .catch(error => sendResponse({ success: false, error: error.message }))
+    return true
+  }
+
+  if (message.type === 'WECHAT_SCAN_LOGIN') {
+    handleWechatScanLogin(message.sessionId)
+      .then(data => sendResponse({ success: true, data }))
+      .catch(error => sendResponse({ success: false, error: error.message }))
+    return true
+  }
 })
 
 /**
@@ -204,6 +247,65 @@ function showSelectionCard(data: {
   }
 
   document.body.appendChild(card)
+}
+
+// ===== 激活 API 处理器（background 代理绕过 CORS） =====
+const WECHAT_BASE = 'https://wx.3198.net'
+
+async function handleWechatQrcode() {
+  const config = await getConfig()
+  const apiUrl = config.apiUrl || 'https://api.miaob.net'
+  const response = await fetch(`${apiUrl}/api/user/activation/qrcode`)
+  if (!response.ok) throw new Error('Failed to get qrcode')
+  return response.json()
+}
+
+async function handleActivationStart(userId: string) {
+  const config = await getConfig()
+  const apiUrl = config.apiUrl || 'https://api.miaob.net'
+  const response = await fetch(`${apiUrl}/api/user/activation/start`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId }),
+  })
+  if (!response.ok) throw new Error('Failed to start activation')
+  return response.json()
+}
+
+async function handleActivationStatus(sessionId: string) {
+  const config = await getConfig()
+  const apiUrl = config.apiUrl || 'https://api.miaob.net'
+  const response = await fetch(`${apiUrl}/api/user/activation/status?sessionId=${sessionId}`)
+  if (!response.ok) throw new Error('Failed to get activation status')
+  return response.json()
+}
+
+async function handleActivationComplete(userId: string, openid: string) {
+  const config = await getConfig()
+  const apiUrl = config.apiUrl || 'https://api.miaob.net'
+  const response = await fetch(`${apiUrl}/api/user/activation/complete`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, openid }),
+  })
+  if (!response.ok) throw new Error('Failed to complete activation')
+  return response.json()
+}
+
+async function handleWechatStatus(sessionId: string) {
+  const response = await fetch(`${WECHAT_BASE}/auth/wechat/status?sessionId=${sessionId}`)
+  if (!response.ok) throw new Error('Failed to get wechat status')
+  return response.json()
+}
+
+async function handleWechatScanLogin(sessionId: string) {
+  const response = await fetch(`${WECHAT_BASE}/auth/wechat/scan-login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sessionId }),
+  })
+  if (!response.ok) throw new Error('Failed to scan login')
+  return response.json()
 }
 
 async function handleTextCheck(data: { text: string }) {
