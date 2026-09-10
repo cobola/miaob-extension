@@ -6,6 +6,8 @@ import { ErrorMarker } from './marker'
 import { getFingerprint } from '../lib/fingerprint'
 import { userService } from '../services/user.service'
 import { feedbackService } from '../services/feedback.service'
+import { discoveryService, DiscoveryResult } from '../services/discovery.service'
+import { squareService } from '../services/square.service'
 import './styles.css'
 import { createRoot } from 'react-dom/client'
 import { ErrorReportPanel } from '../components/ErrorReportPanel'
@@ -46,7 +48,6 @@ class MiaobContent {
     xiehouyu: Array<{ text: string; answer?: string }>
   } = { errors: [], idioms: [], quotes: [], xiehouyu: [] }
   private panelRoot: ReturnType<typeof createRoot> | null = null
-  private userId: string = ''
 
   constructor() {
     try {
@@ -61,20 +62,6 @@ class MiaobContent {
     } catch (e) {
       console.error('[miaob] 构造函数失败:', e)
     }
-  }
-
-  // Deduplicate errors by original text and type
-  private deduplicateErrors(errors: TextError[]): TextError[] {
-    const seen = new Map<string, TextError>()
-
-    for (const error of errors) {
-      const key = `${error.type}:${error.original}`
-      if (!seen.has(key)) {
-        seen.set(key, error)
-      }
-    }
-
-    return Array.from(seen.values())
   }
 
   setupMessageListener() {
@@ -97,6 +84,14 @@ class MiaobContent {
       }
       return false
     })
+
+    // 监听面板发来的 LLM 深度检查结果，标注到页面
+    window.addEventListener('miaob-llm-errors', ((e: CustomEvent) => {
+      const errors = e.detail?.errors as TextError[] | undefined
+      if (errors && errors.length > 0) {
+        this.markLLMErrors(errors)
+      }
+    }) as EventListener)
   }
 
   async init() {
@@ -116,9 +111,8 @@ class MiaobContent {
     this.watchEditableElements()
 
     if (this.config.autoCheck) {
-      setTimeout(() => {
-        this.checkPageContent()
-      }, 2000)
+      // 页面加载后立即检查（DOM 已就绪），无需等待 2 秒
+      this.checkPageContent()
     }
 
     this.watchPageContent()
@@ -139,28 +133,22 @@ class MiaobContent {
     try {
       const fingerprint = await getFingerprint()
 
-      // Check if user exists in storage
-      const stored = await chrome.storage.local.get(['userId', 'fingerprint'])
+      // 每次调服务端同步用户（按 fingerprint 去重，多 Tab 共享同一用户）
+      const result = await userService.createAnonymousUser(fingerprint)
 
-      if (stored.userId && stored.fingerprint === fingerprint) {
-        this.userId = stored.userId as string
-        console.log('已有用户:', this.userId)
-        return
+      // 读取本地 storage 对比，避免不必要的写入
+      const stored = await chrome.storage.local.get(['userId'])
+      if (stored.userId !== result.userId) {
+        await chrome.storage.local.set({
+          userId: result.userId,
+          fingerprint,
+          credits: result.credits,
+          inviteCode: result.inviteCode,
+          isActivated: result.isActivated || false
+        })
       }
 
-      // Create anonymous user
-      const result = await userService.createAnonymousUser()
-      this.userId = result.userId
-
-      await chrome.storage.local.set({
-        userId: result.userId,
-        fingerprint,
-        credits: result.credits,
-        inviteCode: result.inviteCode,
-        isActivated: false
-      })
-
-      console.log('创建匿名用户:', result)
+      console.log('用户:', result.userId)
     } catch (error) {
       console.error('初始化用户失败:', error)
     }
@@ -178,7 +166,6 @@ class MiaobContent {
   renderPanel() {
     if (!this.panelRoot) return
 
-    const allErrors = this.deduplicateErrors(this.allErrors)
     const idiomSet = new Map<string, { idiom: string; derivation?: string; explanation?: string }>()
     const quoteSet = new Map<string, { text: string; from?: string }>()
     const xiehouyuSet = new Map<string, { text: string; answer?: string }>()
@@ -188,7 +175,7 @@ class MiaobContent {
       else if (f.kind === 'xiehouyu' && f.phrase) xiehouyuSet.set(f.phrase.text, f.phrase)
     }
     this.reportData = {
-      errors: allErrors,
+      errors: [],
       idioms: [...idiomSet.values()],
       quotes: [...quoteSet.values()],
       xiehouyu: [...xiehouyuSet.values()],
@@ -196,12 +183,9 @@ class MiaobContent {
 
     this.panelRoot.render(
       createElement(ErrorReportPanel, {
-        errors: this.reportData.errors,
         idioms: this.reportData.idioms,
         quotes: this.reportData.quotes,
         xiehouyu: this.reportData.xiehouyu,
-        onFeedback: this.handleFeedback.bind(this),
-        onErrorClick: this.handleErrorClick.bind(this),
         onItemClick: this.scrollToAnnotation.bind(this),
       })
     )
@@ -539,7 +523,10 @@ class MiaobContent {
 
         console.log(`[miaob] 检查结果: ${result.errors.length} 个错误, ${result.idioms.length} 个成语, ${result.phrases.length} 个短语`)
 
-        // 把结果映射回各个原始块（文本匹配定位，不依赖跨块偏移）
+        // 保存检查过的文本（供 submitToSquare 取上下文）
+        ;(this as any).__lastCheckedText__ = (this as any).__lastCheckedText__ ? (this as any).__lastCheckedText__ + group.text : group.text
+
+      // 把结果映射回各个原始块（文本匹配定位，不依赖跨块偏移）
         for (const item of group.items) {
           const block = item.block
           const blockText = block.text
@@ -586,8 +573,13 @@ class MiaobContent {
         this.showServerUnavailable()
       }
 
-      // 展示阅读报告（成语/名句/错误汇总）
+      // 记录发现（成语/名句/歇后语）并通知
+      this.recordDiscoveries()
 
+      // 提交成语到广场
+      this.submitToSquare()
+
+      // 展示阅读报告（成语/名句/错误汇总）
       this.renderPanel()
       // 初始化标注悬浮卡片（含查看更多链接）
       this.initAnnotationTooltips()
@@ -596,6 +588,152 @@ class MiaobContent {
     }
 
     console.log('页面内容检查完成')
+  }
+
+  /**
+   * 标注 LLM 深度检查发现的错误到页面
+   */
+  private markLLMErrors(errors: TextError[]) {
+    const blocks = this.collectStaticTextBlocks(document.body)
+    for (const block of blocks) {
+      const marks: Array<{ start: number; end: number; kind: 'error' | 'idiom' | 'quote' | 'xiehouyu'; error?: TextError; idiom?: { idiom: string; derivation?: string; explanation?: string }; phrase?: { text: string; answer?: string; from?: string } }> = []
+
+      for (const err of errors) {
+        const orig = err.original || ''
+        if (!orig) continue
+        // LLM 返回的位置是相对于送检文本的，块内偏移不可靠，用全文本匹配
+        for (const pos of this.locateText(block.text, orig, -9999)) {
+          marks.push({ start: pos.start, end: pos.end, kind: 'error', error: err })
+          this.allFindings.push({ kind: 'error', error: err })
+        }
+      }
+
+      if (marks.length > 0) {
+        this.markBlock(block, marks)
+      }
+    }
+    this.renderPanel()
+    this.initAnnotationTooltips()
+  }
+
+  /**
+   * 记录发现并显示通知
+   */
+  private async recordDiscoveries() {
+    const items = this.allFindings
+      .filter(f => f.kind === 'idiom' || f.kind === 'quote' || f.kind === 'xiehouyu')
+      .map(f => ({
+        type: f.kind as 'idiom' | 'quote' | 'xiehouyu',
+        text: f.kind === 'idiom' ? f.idiom?.idiom || '' : f.phrase?.text || '',
+      }))
+      .filter(i => i.text)
+
+    if (items.length === 0) return
+
+    try {
+      const result = await discoveryService.recordDiscoveries(items)
+      if (result.newDiscoveries.length > 0) {
+        this.showDiscoveryNotification(result.newDiscoveries)
+      }
+    } catch (e) {
+      // 发现记录失败不影响主流程
+      console.log('[发现记录] 失败:', e)
+    }
+  }
+
+  /**
+   * 提交成语到广场（去重：同一页面同一成语只提交一次）
+   */
+  private async submitToSquare() {
+    const idiomFindings = this.allFindings.filter(f => f.kind === 'idiom' && f.idiom?.idiom)
+    if (idiomFindings.length === 0) return
+
+    const url = location.href
+    const submittedKey = 'miaob_square_submitted_' + this.hashUrl(url)
+    let submitted: Set<string> = new Set()
+    try {
+      const stored = await new Promise<any>(r => chrome.storage.local.get([submittedKey], r))
+      if (stored[submittedKey]) submitted = new Set(stored[submittedKey])
+    } catch (_) {}
+
+    for (const f of idiomFindings) {
+      const idiom = f.idiom!.idiom
+      if (submitted.has(idiom)) continue
+      try {
+        // 找所在句子：取成语前后各 30 字符
+        const passage = this.findPassageForIdiom(idiom)
+        await squareService.submitIdiom({ idiom, passage, url })
+        submitted.add(idiom)
+      } catch (_) {
+        // 提交失败不影响主流程（可能已提交过）
+      }
+    }
+
+    // 持久化已提交记录（保留最近 200 条）
+    try {
+      const arr = [...submitted].slice(-200)
+      await new Promise<void>(r => chrome.storage.local.set({ [submittedKey]: arr }, () => r()))
+    } catch (_) {}
+  }
+
+  /** 简单 URL hash，用于 storage key */
+  private hashUrl(url: string): string {
+    let h = 0
+    for (let i = 0; i < url.length; i++) { h = ((h << 5) - h + url.charCodeAt(i)) | 0 }
+    return Math.abs(h).toString(36)
+  }
+
+  /** 在 allFindings 中找成语的上下文句子 */
+  private findPassageForIdiom(idiom: string): string {
+    // 简单策略：在所有已检查的块文本中找包含成语的句子
+    const allText = (this as any).__lastCheckedText__ || ''
+    if (!allText) return idiom
+    const idx = allText.indexOf(idiom)
+    if (idx === -1) return idiom
+    const start = Math.max(0, idx - 30)
+    const end = Math.min(allText.length, idx + idiom.length + 30)
+    return allText.slice(start, end).trim()
+  }
+
+  /**
+   * 显示发现通知（带成语/词语）
+   */
+  private showDiscoveryNotification(discoveries: DiscoveryResult[]) {
+    const container = document.getElementById('miaob-discovery-toast') || document.createElement('div')
+    container.id = 'miaob-discovery-toast'
+    container.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:2147483647;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;'
+
+    discoveries.forEach((d) => {
+      const toast = document.createElement('div')
+      const isFirst = d.order === 1
+      const bgColor = isFirst ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : '#4f46e5'
+      const icon = isFirst ? '🏆' : '⭐'
+      const label = isFirst ? '首位发现' : `第${d.order}个发现`
+
+      toast.style.cssText = `background:${bgColor};color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.2);animation:miaob-slide-down .3s ease;display:flex;align-items:center;gap:8px;pointer-events:auto;`
+      toast.innerHTML = `<span>${icon}</span><span>${label}【${d.text}】 +${d.points}积分</span>`
+
+      container.appendChild(toast)
+
+      // 3 秒后自动消失
+      setTimeout(() => {
+        toast.style.opacity = '0'
+        toast.style.transition = 'opacity .3s'
+        setTimeout(() => toast.remove(), 300)
+      }, 3000)
+    })
+
+    if (!document.getElementById('miaob-discovery-toast')) {
+      document.body.appendChild(container)
+    }
+
+    // 添加动画样式（只加一次）
+    if (!document.getElementById('miaob-toast-style')) {
+      const style = document.createElement('style')
+      style.id = 'miaob-toast-style'
+      style.textContent = '@keyframes miaob-slide-down { from { opacity:0;transform:translateY(-20px); } to { opacity:1;transform:translateY(0); } }'
+      document.head.appendChild(style)
+    }
   }
 
   /**
@@ -634,12 +772,16 @@ class MiaobContent {
     tooltip.style.left = `${rect.left + window.scrollX}px`
     tooltip.style.top = `${rect.bottom + window.scrollY + 4}px`
 
-    // 鼠标移出时移除
-    const removeTooltip = () => {
+    // 鼠标移出成语时，检查是否移向 tooltip，是则保留
+    target.addEventListener('mouseout', (e) => {
+      const related = (e as MouseEvent).relatedTarget as Node | null
+      if (related && tooltip.contains(related)) return
       tooltip.remove()
-      target.removeEventListener('mouseout', removeTooltip)
-    }
-    target.addEventListener('mouseout', removeTooltip)
+      tooltip.removeEventListener('mouseleave', onTooltipLeave)
+    })
+    // 鼠标离开 tooltip 时移除
+    const onTooltipLeave = () => tooltip.remove()
+    tooltip.addEventListener('mouseleave', onTooltipLeave)
   }
 
   /**
@@ -690,7 +832,48 @@ class MiaobContent {
       results.push({ start: idx, end: idx + len })
       idx = blockText.indexOf(original, idx + len)
     }
-    return results
+    if (results.length > 0) return results
+
+    // 3. 归一化匹配兜底（处理全半角、空格等差异）
+    const normOriginal = this.normalizeText(original)
+    const normBlock = this.normalizeText(blockText)
+    let normIdx = normBlock.indexOf(normOriginal)
+    if (normIdx >= 0) {
+      // 将归一化位置映射回原始文本位置
+      const origStart = this.mapNormalizedToOriginal(blockText, normIdx)
+      const origEnd = this.mapNormalizedToOriginal(blockText, normIdx + normOriginal.length)
+      if (origStart !== -1 && origEnd !== -1 && origEnd > origStart) {
+        return [{ start: origStart, end: origEnd }]
+      }
+    }
+
+    return []
+  }
+
+  /**
+   * 文本归一化：统一全半角、去除多余空格，用于模糊匹配
+   */
+  private normalizeText(text: string): string {
+    return text
+      .replace(/\s+/g, '')           // 去除所有空白
+      .replace(/[！-～]/g, c =>  // 全角转半角
+        String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+      .replace(/[　]/g, ' ')      // 全角空格转半角
+      .toLowerCase()
+  }
+
+  /**
+   * 将归一化文本位置映射回原始文本位置
+   */
+  private mapNormalizedToOriginal(original: string, normPos: number): number {
+    let normIdx = 0
+    for (let i = 0; i < original.length; i++) {
+      const ch = original[i]
+      if (/\s/.test(ch)) continue  // 跳过空白（归一化时去除）
+      if (normIdx === normPos) return i
+      normIdx++
+    }
+    return -1
   }
 
   /**

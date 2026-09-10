@@ -1,7 +1,7 @@
 {
   "name": "miaob-extension",
-  "version": "0.6.22",
-  "description": "妙笔 - 中文网页阅读增强 Chrome 扩展",
+  "version": "0.7.1",
+  "description": "妙笔 - 中文网页校对 + 成语名句发现 + 智能纠错 + 积分系统",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fingerprintjs/fingerprintjs": "^5.1.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"
   },

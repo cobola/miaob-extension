@@ -199,7 +199,6 @@
   max-width: 300px;
   font-size: 14px;
   line-height: 1.5;
-  pointer-events: none;
 }
 .miaob-tooltip-header {
   font-weight: 600;
@@ -210,7 +209,4 @@
   color: #4b5563;
   font-size: 13px;
   white-space: pre-line;
-}
-.miaob-tooltip-link {
-  pointer-events: auto;
 }
