@@ -18,11 +18,13 @@ export interface PhraseMatch {
   answer?: string
   from?: string
 }
+export interface ExpressionFinding { type: string; text: string; start: number; end: number; score: number; tags?: string[] }
 
 export interface CheckResult {
   errors: TextError[]
   idioms: IdiomMatch[]
   phrases: PhraseMatch[]
+  expressions: ExpressionFinding[]
 }
 
 export class TextChecker {
@@ -43,6 +45,7 @@ export class TextChecker {
    */
   async check(text: string): Promise<CheckResult | null> {
     if (!this.isContextValid()) return null
+    if (!text || text.trim().length === 0) return null  // 跳过空文本
     if (this.cache.has(text)) return this.cache.get(text)!
 
     return new Promise((resolve) => {
@@ -59,9 +62,11 @@ export class TextChecker {
             if (response?.success) {
               const data = response.data || {}
               const result: CheckResult = {
-                errors: data.errors || [],
+                // 错误纠错功能已下线；阅读报告只保留正向发现。
+                errors: [],
                 idioms: data.idioms || [],
                 phrases: data.phrases || [],
+                expressions: data.expressions || [],
               }
               this.cache.set(text, result)
               resolve(result)

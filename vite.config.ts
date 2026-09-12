@@ -16,6 +16,7 @@ export default defineConfig({
   },
   base: './',
   build: {
+    // 不压缩（FingerprintJS 库有三反引号模板字符串，压缩会破坏语法）
     rollupOptions: {
       input: {
         popup: 'src/popup/index.html',

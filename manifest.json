@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "0.6.22",
+  "version": "0.8.2",
   "description": "__MSG_extensionDescription__",
   "default_locale": "zh_CN",
   "permissions": [
@@ -9,6 +9,10 @@
     "storage",
     "scripting",
     "contextMenus"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
   ],
   "background": {
     "service_worker": "src/background/index.ts",

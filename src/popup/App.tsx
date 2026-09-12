@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './index.css'
 import { PopupActivation } from '../components/PopupActivation'
+import { userService } from '../services/user.service'
 
 // 获取扩展内资源的绝对 URL（popup 页面相对路径解析不同）
 const assetUrl = (p: string) => chrome.runtime.getURL(p)
@@ -23,6 +24,16 @@ function App() {
       if (result.userId) setUserId(result.userId as string)
       if (result.credits !== undefined) setCredits(result.credits as number)
       if (result.isActivated !== undefined) setIsActivated(result.isActivated as boolean)
+
+      // 从服务端拉取最新积分（异步更新缓存）
+      if (result.userId) {
+        userService.getUserProfile(result.userId as string)
+          .then(profile => {
+            setCredits(profile.credits)
+            chrome.storage.local.set({ credits: profile.credits })
+          })
+          .catch(() => {}) // 网络错误时保持缓存值
+      }
     })
   }
 
@@ -75,7 +86,6 @@ function App() {
 
   const getDefaultConfig = () => ({
     enabled: true,
-    strictness: 'standard',
     autoCheck: true,
     debounceMs: 800,
     minLength: 4,
@@ -105,7 +115,6 @@ function App() {
         </div>
         {userId && (
           <PopupActivation
-            userId={userId}
             credits={credits}
             isActivated={isActivated}
             onActivated={handleActivated}
@@ -152,20 +161,6 @@ function App() {
           onChange={(v) => saveConfig({ ...config, checkOnBlur: v })}
         />
 
-        <div className="setting-row">
-          <div className="setting-label">严格程度</div>
-          <div className="segmented">
-            {(['basic', 'standard', 'strict'] as const).map((level) => (
-              <button
-                key={level}
-                onClick={() => saveConfig({ ...config, strictness: level })}
-                className={`segmented-item ${config.strictness === level ? 'active' : ''}`}
-              >
-                {{ basic: '基础', standard: '标准', strict: '严格' }[level]}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Footer */}

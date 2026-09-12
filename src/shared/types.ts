@@ -6,13 +6,6 @@ export enum ErrorType {
   SENSITIVE = 'sensitive', // 规范/敏感用语
 }
 
-// 检查严格程度
-export enum Strictness {
-  BASIC = 'basic',       // 基础：只检查明显错误
-  STANDARD = 'standard', // 标准：常规检查
-  STRICT = 'strict',     // 严格：全面检查
-}
-
 // 错误信息
 export interface TextError {
   type: ErrorType
@@ -27,7 +20,6 @@ export interface TextError {
 export interface CheckRequest {
   text: string
   lang: 'zh' | 'en'
-  strictness?: Strictness
 }
 
 // 检查响应
@@ -40,7 +32,6 @@ export interface CheckResponse {
 export interface UserConfig {
   apiUrl: string
   enabled: boolean
-  strictness: Strictness
   autoCheck: boolean
   debounceMs: number
   minLength: number  // 最小检查长度

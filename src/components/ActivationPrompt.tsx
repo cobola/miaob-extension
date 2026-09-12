@@ -2,11 +2,10 @@ import { useState } from 'react'
 import { userService } from '../services/user.service'
 
 interface ActivationPromptProps {
-  userId: string
   onActivated: () => void
 }
 
-export function ActivationPrompt({ userId, onActivated }: ActivationPromptProps) {
+export function ActivationPrompt({ onActivated }: ActivationPromptProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [qrcodeUrl, setQrcodeUrl] = useState('')
   const [status, setStatus] = useState<'idle' | 'pending' | 'scanned' | 'activating' | 'success'>('idle')
@@ -18,38 +17,42 @@ export function ActivationPrompt({ userId, onActivated }: ActivationPromptProps)
     setError('')
     setStatus('pending')
     try {
-      // 1. 创建激活会话
-      await userService.startActivation(userId)
+      // 创建激活会话；服务端从扩展 Bearer token 识别用户
+      const activation = await userService.startActivation()
 
       // 2. 获取微信二维码
-      const qr = await userService.getWechatQrcode()
+      const qr = await userService.getWechatQrcode(activation.sessionId)
       setQrcodeUrl(qr.qrcodeUrl)
 
-      // 3. 轮询扫码状态
+      // 3. 轮询扫码状态（容错：网络波动不中断轮询，仅连续失败才报错）
+      let failCount = 0
+      const MAX_FAIL = 10
       const timer = setInterval(async () => {
         try {
           const st = await userService.getWechatStatus(qr.sessionId)
-          if (st.ok && st.scanned && st.openid) {
+          failCount = 0 // 成功则重置计数
+          if (st.ok && st.scanned) {
             setStatus('scanned')
             clearInterval(timer)
             setPollTimer(null)
-            // 4. 扫码免验证码登录
-            const login = await userService.wechatScanLogin(qr.sessionId)
-            if (login.ok) {
-              setStatus('activating')
-              // 5. 完成激活
-              const result = await userService.completeActivation(userId, login.openid)
+            setStatus('activating')
+            const result = await userService.completeActivation(qr.sessionId)
               if (result.ok) {
+                if (result.extensionToken) await chrome.storage.local.set({ extensionToken: result.extensionToken, userId: result.userId })
                 setStatus('success')
+                // 保存新积分到本地存储
+                await chrome.storage.local.set({ credits: result.credits, isActivated: true })
                 onActivated()
                 setTimeout(() => setIsExpanded(false), 2000)
               }
             }
-          }
         } catch (err) {
-          clearInterval(timer)
-          setPollTimer(null)
-          setError(err instanceof Error ? err.message : '激活失败')
+          failCount++
+          if (failCount >= MAX_FAIL) {
+            clearInterval(timer)
+            setPollTimer(null)
+            setError(err instanceof Error ? err.message : '激活失败')
+          }
         }
       }, 1500)
       setPollTimer(timer)

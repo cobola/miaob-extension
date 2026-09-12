@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { userService } from '../services/user.service'
 
 interface PopupActivationProps {
-  userId: string
   credits: number
   isActivated: boolean
   onActivated: (newCredits: number) => void
@@ -10,7 +9,7 @@ interface PopupActivationProps {
 
 type Status = 'idle' | 'starting' | 'pending' | 'scanned' | 'activating' | 'success' | 'error'
 
-export function PopupActivation({ userId, credits, isActivated, onActivated }: PopupActivationProps) {
+export function PopupActivation({ credits, isActivated, onActivated }: PopupActivationProps) {
   const [expanded, setExpanded] = useState(false)
   const [status, setStatus] = useState<Status>('idle')
   const [qrUrl, setQrUrl] = useState('')
@@ -28,25 +27,23 @@ export function PopupActivation({ userId, credits, isActivated, onActivated }: P
     setMsg('')
     setStatus('starting')
     try {
-      await userService.startActivation(userId)
-      const qr = await userService.getWechatQrcode()
+      const activation = await userService.startActivation()
+      const qr = await userService.getWechatQrcode(activation.sessionId)
       setQrUrl(qr.qrcodeUrl)
       setStatus('pending')
       pollRef.current = setInterval(async () => {
         try {
           const st = await userService.getWechatStatus(qr.sessionId)
-          if (st.ok && st.scanned && st.openid) {
+          if (st.ok && st.scanned) {
             cleanup()
             setStatus('scanned')
-            const login = await userService.wechatScanLogin(qr.sessionId)
-            if (login.ok) {
-              setStatus('activating')
-              const result = await userService.completeActivation(userId, login.openid)
-              if (result.ok) {
-                setStatus('success')
-                setMsg(`+100 积分`)
-                onActivated(result.credits)
-              }
+            setStatus('activating')
+            const result = await userService.completeActivation(qr.sessionId)
+            if (result.ok) {
+              if (result.extensionToken) await chrome.storage.local.set({ extensionToken: result.extensionToken, userId: result.userId })
+              setStatus('success')
+              setMsg(`+100 积分`)
+              onActivated(result.credits)
             }
           }
         } catch (e) {

@@ -1,15 +1,26 @@
 import { TextError } from '../shared/types'
 import { getFingerprint } from '../lib/fingerprint'
 
-async function getApiUrl(): Promise<string> {
-  return new Promise((resolve) => {
-    if (typeof chrome === 'undefined' || !chrome.storage?.sync) {
-      resolve('https://api.miaob.net')
+export interface FeedbackResponse {
+  success: boolean
+  credits: number
+}
+
+// 通过 background script 发消息（绕过 CORS）
+function sendMessage<T>(message: Record<string, unknown>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) {
+      reject(new Error('chrome.runtime not available'))
       return
     }
-    chrome.storage.sync.get(['config'], (result) => {
-      const cfg = (result as { config?: { apiUrl?: string } }).config
-      resolve(cfg?.apiUrl || 'https://api.miaob.net')
+    chrome.runtime.sendMessage(message, (response: { success: boolean; data?: T; error?: string }) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message))
+      } else if (response?.success) {
+        resolve(response.data as T)
+      } else {
+        reject(new Error(response?.error || 'Unknown error'))
+      }
     })
   })
 }
@@ -20,14 +31,11 @@ export class FeedbackService {
     error: TextError,
     isCorrect: boolean,
     context: string,
-  ): Promise<{ success: boolean; credits: number }> {
+  ): Promise<FeedbackResponse> {
     const fingerprint = await getFingerprint()
-    const apiUrl = await getApiUrl()
-
-    const response = await fetch(`${apiUrl}/api/feedback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    return sendMessage<FeedbackResponse>({
+      type: 'SUBMIT_FEEDBACK',
+      data: {
         userId,
         fingerprint,
         errorType: error.type,
@@ -35,22 +43,12 @@ export class FeedbackService {
         suggestion: error.suggestion,
         context,
         isCorrect,
-      }),
+      },
     })
-
-    if (!response.ok) {
-      const err = await response.json()
-      throw new Error(err.message || 'Failed to submit feedback')
-    }
-
-    return response.json()
   }
 
   async getStats() {
-    const apiUrl = await getApiUrl()
-    const response = await fetch(`${apiUrl}/api/feedback/stats`)
-    if (!response.ok) throw new Error('Failed to get stats')
-    return response.json()
+    return sendMessage({ type: 'GET_FEEDBACK_STATS' })
   }
 }
 

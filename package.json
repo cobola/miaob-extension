@@ -1,7 +1,7 @@
 {
   "name": "miaob-extension",
-  "version": "0.7.1",
-  "description": "妙笔 - 中文网页校对 + 成语名句发现 + 智能纠错 + 积分系统",
+  "version": "0.8.2",
+  "description": "妙笔 - 中文阅读伴侣，发现中文文章中的成语、名句与表达高光",
   "type": "module",
   "scripts": {
     "dev": "vite",

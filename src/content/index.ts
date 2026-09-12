@@ -10,7 +10,7 @@ import { discoveryService, DiscoveryResult } from '../services/discovery.service
 import { squareService } from '../services/square.service'
 import './styles.css'
 import { createRoot } from 'react-dom/client'
-import { ErrorReportPanel } from '../components/ErrorReportPanel'
+import { ReportPanel } from '../components/ReportPanel'
 import { createElement } from 'react'
 
 console.log('妙笔 Content Script 已加载')
@@ -34,6 +34,8 @@ class MiaobContent {
   private config!: UserConfig
   private debounceTimers: Map<HTMLElement, number> = new Map()
   private pageCheckTimer: number | null = null
+  private pageCheckInFlight = false
+  private lastPageCheckAt = 0
   private attachedElements: WeakSet<HTMLElement> = new WeakSet()
   private staticCheckedElements: WeakSet<HTMLElement> = new WeakSet()
   private isMarking = false
@@ -46,8 +48,18 @@ class MiaobContent {
     idioms: Array<{ idiom: string; derivation?: string; explanation?: string }>
     quotes: Array<{ text: string; from?: string }>
     xiehouyu: Array<{ text: string; answer?: string }>
-  } = { errors: [], idioms: [], quotes: [], xiehouyu: [] }
+    expressions: Array<{ type: string; text: string; score?: number }>
+  } = { errors: [], idioms: [], quotes: [], xiehouyu: [], expressions: [] }
+  private expressionFindings: Array<{ type: string; text: string; score?: number }> = []
   private panelRoot: ReturnType<typeof createRoot> | null = null
+  private idiomCard: HTMLElement | null = null
+  private idiomTarget: HTMLElement | null = null
+  private idiomHideTimer: number | null = null
+  private idiomShowTimer: number | null = null
+  private idiomRequest: AbortController | null = null
+  private idiomRequestId = 0
+  private idiomPinned = false
+  private idiomDetailCache = new Map<string, { data: any; expiresAt: number }>()
 
   constructor() {
     try {
@@ -179,13 +191,15 @@ class MiaobContent {
       idioms: [...idiomSet.values()],
       quotes: [...quoteSet.values()],
       xiehouyu: [...xiehouyuSet.values()],
+      expressions: this.expressionFindings,
     }
 
     this.panelRoot.render(
-      createElement(ErrorReportPanel, {
+      createElement(ReportPanel, {
         idioms: this.reportData.idioms,
         quotes: this.reportData.quotes,
         xiehouyu: this.reportData.xiehouyu,
+        expressions: this.reportData.expressions,
         onItemClick: this.scrollToAnnotation.bind(this),
       })
     )
@@ -281,7 +295,6 @@ class MiaobContent {
     return {
       apiUrl: 'https://api.miaob.net',
       enabled: true,
-      strictness: 'standard' as UserConfig['strictness'],
       autoCheck: true,
       debounceMs: 800,
       minLength: 4,
@@ -497,6 +510,10 @@ class MiaobContent {
   // 检查页面静态文本（聚合小块 → 服务端 API）
   async checkPageContent(force = false) {
     if (!force && !this.config.enabled) return
+    if (this.pageCheckInFlight) return
+    if (!force && Date.now() - this.lastPageCheckAt < 3000) return
+    this.pageCheckInFlight = true
+    this.lastPageCheckAt = Date.now()
     console.log('开始检查页面内容...')
 
     try {
@@ -522,6 +539,9 @@ class MiaobContent {
         }
 
         console.log(`[miaob] 检查结果: ${result.errors.length} 个错误, ${result.idioms.length} 个成语, ${result.phrases.length} 个短语`)
+        for (const expression of result.expressions || []) {
+          if (expression?.text && !this.expressionFindings.some(e => e.type === expression.type && e.text === expression.text)) this.expressionFindings.push({ type: expression.type, text: expression.text, score: expression.score })
+        }
 
         // 保存检查过的文本（供 submitToSquare 取上下文）
         ;(this as any).__lastCheckedText__ = (this as any).__lastCheckedText__ ? (this as any).__lastCheckedText__ + group.text : group.text
@@ -530,7 +550,7 @@ class MiaobContent {
         for (const item of group.items) {
           const block = item.block
           const blockText = block.text
-          const marks: Array<{ start: number; end: number; kind: 'error' | 'idiom' | 'quote' | 'xiehouyu'; error?: TextError; idiom?: { idiom: string; derivation?: string; explanation?: string }; phrase?: { text: string; answer?: string; from?: string } }> = []
+          const marks: Array<{ start: number; end: number; kind: 'error' | 'idiom' | 'quote' | 'xiehouyu' | 'expression'; error?: TextError; idiom?: { idiom: string; derivation?: string; explanation?: string }; phrase?: { text: string; answer?: string; from?: string }; expression?: { text: string; type: string } }> = []
 
           // 错误
           for (const e of result.errors) {
@@ -562,6 +582,14 @@ class MiaobContent {
             }
           }
 
+          for (const expression of result.expressions || []) {
+            const orig = expression.text || ''
+            if (!orig || expression.score < 0.8) continue
+            for (const pos of this.locateText(blockText, orig, expression.start - item.offset)) {
+              marks.push({ start: pos.start, end: pos.end, kind: 'expression', expression: { text: orig, type: expression.type } })
+            }
+          }
+
           if (marks.length > 0) {
             this.markBlock(block, marks)
           }
@@ -588,6 +616,7 @@ class MiaobContent {
     }
 
     console.log('页面内容检查完成')
+    this.pageCheckInFlight = false
   }
 
   /**
@@ -742,46 +771,253 @@ class MiaobContent {
   private initAnnotationTooltips() {
     // 移除旧的监听（防重复）
     document.removeEventListener('mouseover', this.handleAnnotationHover)
+    document.removeEventListener('mouseout', this.handleAnnotationLeave)
     document.addEventListener('mouseover', this.handleAnnotationHover)
+    document.addEventListener('mouseout', this.handleAnnotationLeave)
+    document.addEventListener('keydown', this.handleIdiomKeydown)
+    window.addEventListener('resize', this.handleIdiomViewportChange)
+    window.addEventListener('scroll', this.handleIdiomViewportChange, true)
+  }
+
+  private handleIdiomKeydown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && this.idiomCard) this.closeIdiomCard()
+  }
+
+  private handleIdiomViewportChange = () => {
+    if (this.idiomCard && this.idiomTarget) this.positionIdiomCard(this.idiomCard, this.idiomTarget)
+  }
+
+  private handleAnnotationLeave = (e: Event) => {
+    const target = e.target as HTMLElement
+    if (!target.matches('.miaob-idiom')) return
+    const related = (e as MouseEvent).relatedTarget as Node | null
+    if (related && (this.idiomCard?.contains(related) || target.contains(related))) return
+    if (target === this.idiomTarget) this.scheduleIdiomHide()
   }
 
   private handleAnnotationHover = (e: Event) => {
     const target = e.target as HTMLElement
     if (!target.matches('.miaob-idiom, .miaob-quote, .miaob-xiehouyu')) return
+    if (!target.matches('.miaob-idiom')) {
+      this.showLegacyAnnotationTooltip(target)
+      return
+    }
+    const related = (e as MouseEvent).relatedTarget as Node | null
+    if (related && target.contains(related)) return
+    if (target === this.idiomTarget && this.idiomCard) return
+    this.clearIdiomTimer()
+    this.idiomTarget = target
+    this.idiomShowTimer = window.setTimeout(() => {
+      if (this.idiomTarget === target && !this.idiomPinned) this.showIdiomCard(target).catch(() => {})
+    }, 200)
+  }
 
-    // 移除旧 tooltip
+  private showLegacyAnnotationTooltip(target: HTMLElement) {
     document.querySelectorAll('.miaob-tooltip').forEach(el => el.remove())
-
     const url = target.dataset.url
     if (!url) return
+    let parsed: URL
+    try { parsed = new URL(url); if (!['https:', 'http:'].includes(parsed.protocol)) return } catch { return }
+    const tooltip = document.createElement('div'); tooltip.className = 'miaob-tooltip'
+    const header = document.createElement('div'); header.className = 'miaob-tooltip-header'; header.textContent = `${target.dataset.type === 'quote' ? '名句' : '歇后语'}：${target.textContent || ''}`
+    const body = document.createElement('div'); body.className = 'miaob-tooltip-body'; body.textContent = target.title || '点击查看更多'
+    const link = document.createElement('a'); link.className = 'miaob-tooltip-link'; link.textContent = `查看更多 → ${parsed.hostname.replace(/^www\./, '')}`; link.href = parsed.href; link.target = '_blank'; link.rel = 'noopener noreferrer'
+    tooltip.append(header, body, link); document.body.appendChild(tooltip)
+    const rect = target.getBoundingClientRect(); tooltip.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - tooltip.offsetWidth - 8))}px`; tooltip.style.top = `${rect.bottom + 4}px`
+    const close = () => tooltip.remove(); target.addEventListener('mouseleave', close, { once: true }); tooltip.addEventListener('mouseleave', close, { once: true })
+  }
 
-    const typeLabel = target.dataset.type === 'idiom' ? '成语' : target.dataset.type === 'quote' ? '名句' : '歇后语'
-    const siteUrl = new URL(url)
-    const siteName = siteUrl.hostname.replace('www.', '')
+  private clearIdiomTimer() {
+    if (this.idiomShowTimer !== null) window.clearTimeout(this.idiomShowTimer)
+    if (this.idiomHideTimer !== null) window.clearTimeout(this.idiomHideTimer)
+    this.idiomShowTimer = this.idiomHideTimer = null
+  }
 
-    const tooltip = document.createElement('div')
-    tooltip.className = 'miaob-tooltip'
-    tooltip.innerHTML = `
-      <div class="miaob-tooltip-header">${typeLabel}：${target.textContent}</div>
-      <div class="miaob-tooltip-body">${target.title || '点击查看更多'}</div>
-      <a href="${url}" target="_blank" class="miaob-tooltip-link">查看更多 → ${siteName}</a>
-    `
-    document.body.appendChild(tooltip)
+  private scheduleIdiomHide() {
+    if (this.idiomPinned) return
+    if (this.idiomHideTimer !== null) window.clearTimeout(this.idiomHideTimer)
+    this.idiomHideTimer = window.setTimeout(() => this.closeIdiomCard(), 300)
+  }
 
+  private closeIdiomCard() {
+    this.clearIdiomTimer()
+    this.idiomRequest?.abort()
+    this.idiomRequest = null
+    this.idiomRequestId++
+    this.idiomCard?.remove()
+    this.idiomCard = null
+    this.idiomTarget = null
+    this.idiomPinned = false
+  }
+
+  private positionIdiomCard(card: HTMLElement, target: HTMLElement) {
     const rect = target.getBoundingClientRect()
-    tooltip.style.left = `${rect.left + window.scrollX}px`
-    tooltip.style.top = `${rect.bottom + window.scrollY + 4}px`
+    const width = Math.min(400, window.innerWidth - 16)
+    card.style.width = `${width}px`
+    card.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - width - 8))}px`
+    card.style.top = `${rect.bottom + 6 <= window.innerHeight - 8 ? rect.bottom + 6 : Math.max(8, rect.top - card.offsetHeight - 6)}px`
+  }
 
-    // 鼠标移出成语时，检查是否移向 tooltip，是则保留
-    target.addEventListener('mouseout', (e) => {
-      const related = (e as MouseEvent).relatedTarget as Node | null
-      if (related && tooltip.contains(related)) return
-      tooltip.remove()
-      tooltip.removeEventListener('mouseleave', onTooltipLeave)
+  private async showIdiomCard(target: HTMLElement) {
+    this.closeIdiomCard()
+    this.idiomTarget = target
+    const card = document.createElement('div')
+    card.className = 'miaob-idiom-card'
+    const loading = document.createElement('div')
+    loading.className = 'miaob-card-loading'
+    loading.textContent = '加载中…'
+    card.appendChild(loading)
+    document.body.appendChild(card)
+    this.idiomCard = card
+    this.positionIdiomCard(card, target)
+    card.addEventListener('mouseenter', () => this.clearIdiomTimer())
+    card.addEventListener('mouseleave', () => this.scheduleIdiomHide())
+    const requestId = ++this.idiomRequestId
+    try {
+      const idiom = target.textContent || ''
+      const cached = this.idiomDetailCache.get(idiom)
+      const data = cached && cached.expiresAt > Date.now() ? cached.data : await this.fetchIdiomDetail(idiom)
+      if (!cached || cached.expiresAt <= Date.now()) this.idiomDetailCache.set(idiom, { data, expiresAt: Date.now() + 3600000 })
+      if (requestId !== this.idiomRequestId || this.idiomCard !== card) return
+      this.renderIdiomCard(card, data)
+      this.positionIdiomCard(card, target)
+    } catch {
+      if (requestId === this.idiomRequestId && this.idiomCard === card) {
+        loading.textContent = '加载失败，请稍后重试'
+      }
+    }
+  }
+
+  private renderIdiomCard(card: HTMLElement, data: any) {
+    card.replaceChildren()
+    const header = document.createElement('div'); header.className = 'miaob-card-header'
+    const title = document.createElement('strong'); title.className = 'miaob-card-title'; title.textContent = data.idiom || ''
+    const pinyin = document.createElement('span'); pinyin.className = 'miaob-card-pinyin'; pinyin.textContent = data.pinyin || ''
+    const close = document.createElement('button'); close.className = 'miaob-card-close'; close.type = 'button'; close.textContent = '✕'; close.setAttribute('aria-label', '关闭'); close.onclick = () => this.closeIdiomCard()
+    header.append(title, pinyin, close); card.appendChild(header)
+    const body = document.createElement('div'); body.className = 'miaob-card-body'
+    const addSection = (label: string, value: unknown) => { if (!value) return; const section = document.createElement('section'); section.className = 'miaob-card-section'; const l = document.createElement('div'); l.className = 'miaob-card-label'; l.textContent = label; const v = document.createElement('div'); v.textContent = String(value); section.append(l, v); body.appendChild(section) }
+    addSection('释义', data.explanation); addSection('出处', data.derivation)
+    const relations = data.relations || { synonyms: data.synonym || [], antonyms: data.antonym || [] }
+    const relationBox = document.createElement('div'); relationBox.className = 'miaob-card-relations'
+    const addRelations = (label: string, values: unknown[], type: string) => { if (!Array.isArray(values) || !values.length) return; const group = document.createElement('div'); group.className = 'miaob-card-rel-group'; const l = document.createElement('div'); l.className = 'miaob-card-label'; l.textContent = label; const items = document.createElement('div'); items.className = 'miaob-card-rel-items'; values.slice(0, 8).forEach(value => { const b = document.createElement('button'); b.type = 'button'; b.className = 'miaob-card-rel-item'; b.textContent = String(value); b.onclick = () => { const found = this.findAnnotation(String(value), type); if (found) this.scrollToAnnotation(String(value), type); else this.openRelatedIdiom(String(value), card) }; items.appendChild(b) }); group.append(l, items); relationBox.appendChild(group) }
+    addRelations('同义', relations.synonyms, 'idiom'); addRelations('反义', relations.antonyms, 'idiom'); if (relationBox.childElementCount) body.appendChild(relationBox); card.appendChild(body)
+    const footer = document.createElement('div'); footer.className = 'miaob-card-footer'; const link = document.createElement('a'); link.className = 'miaob-card-link'; link.textContent = '🔗 汉典详解'; link.href = typeof data.zdicUrl === 'string' ? data.zdicUrl : '#'; link.target = '_blank'; link.rel = 'noopener noreferrer'; footer.appendChild(link)
+    const add = document.createElement('button'); add.type = 'button'; add.className = 'miaob-card-add'; add.textContent = '📋 加入妙笔本'; add.onclick = () => { add.disabled = true; chrome.runtime.sendMessage({ type: 'ADD_MIAOBEN', idiom: data.idiom, sourceUrl: location.href }, (response) => { if (response?.needsActivation) { this.showActivationGuide(card, data.idiom, add); add.disabled = false; add.textContent = '📋 加入妙笔本' } else { add.disabled = false; add.textContent = response?.success ? '✓ 已加入妙笔本' : '加入失败，请重试' } }) }; footer.appendChild(add); card.appendChild(footer)
+    card.onclick = (e) => { if (!(e.target as HTMLElement).closest('button,a')) { this.idiomPinned = true; card.classList.add('pinned') } }
+  }
+
+  private findAnnotation(text: string, type: string): HTMLElement | null {
+    const className = type === 'idiom' ? 'miaob-idiom' : type === 'quote' ? 'miaob-quote' : 'miaob-xiehouyu'
+    return Array.from(document.querySelectorAll(`.${className}`)).find(el => el.textContent === text || el.textContent?.includes(text)) as HTMLElement || null
+  }
+
+  private async openRelatedIdiom(idiom: string, card: HTMLElement) {
+    try {
+      const cached = this.idiomDetailCache.get(idiom)
+      const data = cached && cached.expiresAt > Date.now() ? cached.data : await this.fetchIdiomDetail(idiom)
+      this.idiomDetailCache.set(idiom, { data, expiresAt: Date.now() + 3600000 })
+      if (this.idiomCard === card) this.renderIdiomCard(card, data)
+    } catch {
+      const message = document.createElement('div'); message.className = 'miaob-card-loading'; message.textContent = '加载失败，请稍后重试'; card.replaceChildren(message)
+    }
+  }
+
+  private fetchIdiomDetail(idiom: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ type: 'FETCH_IDIOM_DETAIL', idiom }, (response) => {
+        if (response?.success) resolve(response.data)
+        else reject(new Error(response?.error || 'fetch failed'))
+      })
     })
-    // 鼠标离开 tooltip 时移除
-    const onTooltipLeave = () => tooltip.remove()
-    tooltip.addEventListener('mouseleave', onTooltipLeave)
+  }
+
+  // 激活引导弹窗（在成语卡片内展示）
+  private showActivationGuide(card: HTMLElement, idiom: string, addBtn: HTMLButtonElement) {
+    // 移除已有的引导
+    card.querySelector('.miaob-activation-guide')?.remove()
+
+    const guide = document.createElement('div')
+    guide.className = 'miaob-activation-guide'
+    guide.innerHTML = `
+      <div class="miaob-guide-inner">
+        <div class="miaob-guide-title">📖 妙笔本</div>
+        <div class="miaob-guide-desc">自动收藏你阅读中遇到的成语、名句，随时温习</div>
+        <div class="miaob-guide-qr" id="miaob-guide-qr-${Date.now()}">
+          <div class="miaob-guide-loading">加载二维码中...</div>
+        </div>
+        <div class="miaob-guide-hint">微信扫码激活，送 100 积分，可无限收藏</div>
+        <button class="miaob-guide-close" type="button">✕</button>
+      </div>
+    `
+
+    card.appendChild(guide)
+
+    // 关闭按钮
+    guide.querySelector('.miaob-guide-close')!.addEventListener('click', () => guide.remove())
+
+    // 加载二维码
+    const qrContainer = guide.querySelector('.miaob-guide-qr') as HTMLElement
+    this.loadActivationQr(qrContainer, idiom, addBtn)
+  }
+
+  // 加载激活二维码并轮询状态
+  private loadActivationQr(container: HTMLElement, idiom: string, addBtn: HTMLButtonElement) {
+    // 创建激活会话
+    chrome.runtime.sendMessage({ type: 'ACTIVATION_START' }, (startResp) => {
+      if (!startResp?.success) {
+        container.innerHTML = '<div class="miaob-guide-error">加载失败，请刷新重试</div>'
+        return
+      }
+      const sessionId = startResp.data.sessionId
+
+      // 获取二维码
+      chrome.runtime.sendMessage({ type: 'WECHAT_QRCODE', sessionId }, (qrResp) => {
+        if (!qrResp?.success) {
+          container.innerHTML = '<div class="miaob-guide-error">二维码获取失败</div>'
+          return
+        }
+        container.innerHTML = `<img src="${qrResp.data.qrcodeUrl}" alt="微信扫码" class="miaob-guide-qrimg" />`
+
+        // 轮询扫码状态
+        const poll = setInterval(() => {
+          chrome.runtime.sendMessage({ type: 'WECHAT_STATUS', sessionId }, (statusResp) => {
+            if (statusResp?.success && statusResp.data.scanned) {
+              clearInterval(poll)
+              container.innerHTML = '<div class="miaob-guide-success">✓ 扫码成功，激活中...</div>'
+              this.completeActivation(sessionId, idiom, addBtn, container)
+            }
+          })
+        }, 1500)
+
+        // 30 秒超时
+        setTimeout(() => { clearInterval(poll) }, 30000)
+      })
+    })
+  }
+
+  // 完成激活并自动加入妙笔本
+  private completeActivation(sessionId: string, idiom: string, addBtn: HTMLButtonElement, container: HTMLElement) {
+    chrome.runtime.sendMessage({ type: 'ACTIVATION_COMPLETE', sessionId }, (resp) => {
+      if (resp?.success) {
+        container.innerHTML = '<div class="miaob-guide-success">🎉 激活成功！+100 积分</div>'
+        // 更新本地激活状态
+        chrome.storage.local.set({ isActivated: true, credits: resp.data?.credits || 0 })
+        // 自动重试加入妙笔本
+        setTimeout(() => {
+          chrome.runtime.sendMessage({ type: 'ADD_MIAOBEN', idiom, sourceUrl: location.href }, (addResp) => {
+            if (addResp?.success) {
+              addBtn.textContent = '✓ 已加入妙笔本'
+            } else {
+              addBtn.textContent = '📋 加入妙笔本'
+            }
+          })
+        }, 800)
+        setTimeout(() => { container.closest('.miaob-activation-guide')?.remove() }, 2000)
+      } else {
+        container.innerHTML = '<div class="miaob-guide-error">激活失败，请重试</div>'
+      }
+    })
   }
 
   /**
@@ -1011,13 +1247,13 @@ class MiaobContent {
         this.showServerUnavailable()
         break
       }
-      if (result.errors.length === 0 && result.idioms.length === 0 && result.phrases.length === 0) continue
+      if (result.errors.length === 0 && result.idioms.length === 0 && result.phrases.length === 0 && (result.expressions || []).length === 0) continue
 
       for (const item of group.items) {
         const block = item.block
         if (this.staticCheckedElements.has(block.root)) continue
         const blockText = block.text
-        const marks: Array<{ start: number; end: number; kind: 'error' | 'idiom' | 'quote' | 'xiehouyu'; error?: TextError; idiom?: { idiom: string; derivation?: string; explanation?: string }; phrase?: { text: string; answer?: string; from?: string } }> = []
+        const marks: Array<{ start: number; end: number; kind: 'error' | 'idiom' | 'quote' | 'xiehouyu' | 'expression'; error?: TextError; idiom?: { idiom: string; derivation?: string; explanation?: string }; phrase?: { text: string; answer?: string; from?: string }; expression?: { text: string; type: string } }> = []
 
         // 错误
         for (const e of result.errors) {
@@ -1043,6 +1279,13 @@ class MiaobContent {
           if (!orig) continue
           for (const pos of this.locateText(blockText, orig, p.start - item.offset)) {
             marks.push({ start: pos.start, end: pos.end, kind: p.type === 'quote' ? 'quote' : 'xiehouyu', phrase: { text: p.text, answer: p.answer, from: p.from } })
+          }
+        }
+
+        for (const expression of result.expressions || []) {
+          if (!expression?.text || expression.score < 0.8) continue
+          for (const pos of this.locateText(blockText, expression.text, expression.start - item.offset)) {
+            marks.push({ start: pos.start, end: pos.end, kind: 'expression', expression: { text: expression.text, type: expression.type } })
           }
         }
 
@@ -1204,12 +1447,12 @@ class MiaobContent {
    * 统一标注一个块的所有内容（错误/成语/名句/歇后语）
    * 一次遍历 segments，一次性替换 DOM——避免多次替换导致后续节点失效
    */
-  private markBlock(block: StaticTextBlock, marks: Array<{ start: number; end: number; kind: 'error' | 'idiom' | 'quote' | 'xiehouyu'; error?: TextError; idiom?: { idiom: string; derivation?: string; explanation?: string }; phrase?: { text: string; answer?: string; from?: string } }>) {
+  private markBlock(block: StaticTextBlock, marks: Array<{ start: number; end: number; kind: 'error' | 'idiom' | 'quote' | 'xiehouyu' | 'expression'; error?: TextError; idiom?: { idiom: string; derivation?: string; explanation?: string }; phrase?: { text: string; answer?: string; from?: string }; expression?: { text: string; type: string } }>) {
     this.isMarking = true
 
     // 同位置去重：同一位置多个标注（如"愚公移山"既是成语又是歇后语），
     // 优先级：error > idiom > quote > xiehouyu，只保留最高优先级
-    const priority = { error: 0, idiom: 1, quote: 2, xiehouyu: 3 } as Record<string, number>
+    const priority = { error: 0, idiom: 1, quote: 2, xiehouyu: 3, expression: 4 } as Record<string, number>
     const dedup = new Map<string, typeof marks[number]>()
     for (const m of marks) {
       const key = `${m.start}-${m.end}`
@@ -1278,7 +1521,7 @@ class MiaobContent {
    * 根据标注类型创建对应的 span 元素
    */
   private createMarkSpan(
-    mark: { kind: string; error?: TextError; idiom?: { idiom: string; derivation?: string; explanation?: string }; phrase?: { text: string; answer?: string; from?: string } },
+    mark: { kind: string; error?: TextError; idiom?: { idiom: string; derivation?: string; explanation?: string }; phrase?: { text: string; answer?: string; from?: string }; expression?: { text: string; type: string } },
     text: string,
   ): HTMLSpanElement {
     const span = document.createElement('span')
@@ -1310,6 +1553,10 @@ class MiaobContent {
       span.title = p.answer ? `${p.text}——${p.answer}` : '歇后语'
       span.dataset.type = 'xiehouyu'
       span.dataset.url = `https://www.xiehouyu.cn/search.php?keyword=${encodeURIComponent(p.text)}`
+    } else if (mark.kind === 'expression' && mark.expression) {
+      span.className = 'miaob-expression'
+      span.dataset.type = 'expression'
+      span.title = ({ golden_sentence: '金句', parallelism: '排比', contrast: '对比', rhetorical_question: '设问', numeric_impact: '数字冲击' } as Record<string, string>)[mark.expression.type] || '表达高光'
     }
 
     span.textContent = text
