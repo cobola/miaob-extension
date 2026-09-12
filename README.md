@@ -15,7 +15,7 @@
 
 ### 方式一：Chrome Web Store（推荐）
 
-> 正在审核中...
+[从 Chrome Web Store 安装](https://chromewebstore.google.com/detail/%E5%A6%99%E7%AC%94-%E4%B8%AD%E6%96%87%E9%98%85%E8%AF%BB%E4%BC%B4%E4%BE%A3/cgablamblomanjndbiagjmgnlbkfhfpm)
 
 ### 方式二：开发者模式
 
