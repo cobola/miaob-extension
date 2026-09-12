@@ -17,18 +17,20 @@ interface IdiomEntry { idiom: string; derivation?: string; explanation?: string 
 interface QuoteEntry { text: string; from?: string }
 interface XiehouyuEntry { text: string; answer?: string }
 interface ExpressionEntry { type: string; text: string; score?: number }
+interface QuotaStatus { remaining: number; isPaid: boolean; used: number; limit: number }
 
 interface ReportPanelProps {
   idioms?: IdiomEntry[]
   quotes?: QuoteEntry[]
   xiehouyu?: XiehouyuEntry[]
   expressions?: ExpressionEntry[]
+  quota?: QuotaStatus
   onItemClick?: (text: string, type: 'idiom' | 'quote' | 'xiehouyu' | 'expression', start?: number, end?: number) => void
 }
 
 const expressionLabels: Record<string, string> = { golden_sentence: '金句', parallelism: '排比', contrast: '对比', rhetorical_question: '设问', numeric_impact: '数字', metaphor: '比喻', citation: '引用' }
 
-export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressions = [], onItemClick }: ReportPanelProps) {
+export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressions = [], quota, onItemClick }: ReportPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [credits, setCredits] = useState(0)
   const [userId, setUserId] = useState('')
@@ -213,6 +215,7 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
         </div>
 
         <div className="panel-content">
+          {quota && !quota.isPaid && quota.remaining <= 3 && <div className="quota-notice">今日表达分析剩余 {quota.remaining} 次，开通妙笔本后可无限使用</div>}
           {activeTab === 'idiom' && (
             idioms.length === 0 ? (
               <div className="empty-state"><p>暂无成语</p></div>

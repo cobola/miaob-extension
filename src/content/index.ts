@@ -49,6 +49,7 @@ class MiaobContent {
     quotes: Array<{ text: string; from?: string }>
     xiehouyu: Array<{ text: string; answer?: string }>
     expressions: Array<{ type: string; text: string; score?: number }>
+    quota?: { remaining: number; isPaid: boolean; used: number; limit: number }
   } = { errors: [], idioms: [], quotes: [], xiehouyu: [], expressions: [] }
   private expressionFindings: Array<{ type: string; text: string; score?: number }> = []
   private panelRoot: ReturnType<typeof createRoot> | null = null
@@ -199,7 +200,8 @@ class MiaobContent {
         idioms: this.reportData.idioms,
         quotes: this.reportData.quotes,
         xiehouyu: this.reportData.xiehouyu,
-        expressions: this.reportData.expressions,
+      expressions: this.reportData.expressions,
+      quota: this.reportData.quota,
         onItemClick: this.scrollToAnnotation.bind(this),
       })
     )
@@ -542,6 +544,7 @@ class MiaobContent {
         for (const expression of result.expressions || []) {
           if (expression?.text && !this.expressionFindings.some(e => e.type === expression.type && e.text === expression.text)) this.expressionFindings.push({ type: expression.type, text: expression.text, score: expression.score })
         }
+        this.reportData.quota = result.quota
 
         // 保存检查过的文本（供 submitToSquare 取上下文）
         ;(this as any).__lastCheckedText__ = (this as any).__lastCheckedText__ ? (this as any).__lastCheckedText__ + group.text : group.text

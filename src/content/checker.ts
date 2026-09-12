@@ -25,6 +25,7 @@ export interface CheckResult {
   idioms: IdiomMatch[]
   phrases: PhraseMatch[]
   expressions: ExpressionFinding[]
+  quota?: { remaining: number; isPaid: boolean; used: number; limit: number }
 }
 
 export class TextChecker {
@@ -67,6 +68,7 @@ export class TextChecker {
                 idioms: data.idioms || [],
                 phrases: data.phrases || [],
                 expressions: data.expressions || [],
+                quota: data.quota || undefined,
               }
               this.cache.set(text, result)
               resolve(result)
