@@ -364,6 +364,8 @@
 .share-close { position:absolute; right:12px; top:10px; border:0; background:none; font-size:18px; color:#64748b; cursor:pointer; }
 .share-modal input { width:100%; box-sizing:border-box; padding:10px; border:1px solid #e5e7eb; border-radius:6px; font-size:12px; }
 .share-actions { display:flex; gap:8px; margin-top:12px; }.share-actions button { flex:1; padding:9px; border:1px solid #c7d2fe; border-radius:6px; background:#eef2ff; color:#4338ca; cursor:pointer; }.share-hint { margin-top:14px; color:#94a3b8; font-size:12px; text-align:center; }
+.share-qr { display:flex; justify-content:center; margin:12px 0; }
+.share-qr img { border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.08); }
 
 .credits-display {
   display: flex;
