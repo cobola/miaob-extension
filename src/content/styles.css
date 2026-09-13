@@ -1,29 +1,30 @@
 /* 妙笔 Content Script 样式 */
 
-/* 错误标注 */
+/* 错误标注（红色波浪线） */
 .miaob-error {
   position: relative;
-  border-bottom: 3px wavy #ef4444 !important;
+  text-decoration: underline wavy #ef4444 !important;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
   cursor: pointer;
-  text-decoration: none !important;
-  background-color: rgba(239, 68, 68, 0.15);
+  background-color: rgba(239, 68, 68, 0.10);
   padding: 1px 2px;
   border-radius: 2px;
 }
 
 .miaob-error-typo {
-  border-bottom-color: #dc2626 !important; /* 红色 - 错别字 */
-  background-color: rgba(220, 38, 38, 0.15);
+  text-decoration-color: #dc2626 !important; /* 红色 - 错别字 */
+  background-color: rgba(220, 38, 38, 0.10);
 }
 
 .miaob-error-grammar {
-  border-bottom-color: #d97706 !important; /* 橙色 - 语法 */
-  background-color: rgba(217, 119, 6, 0.15);
+  text-decoration-color: #d97706 !important; /* 橙色 - 语法 */
+  background-color: rgba(217, 119, 6, 0.10);
 }
 
 .miaob-error-punctuation {
-  border-bottom-color: #8C3D2B !important; /* 蓝色 - 标点 */
-  background-color: rgba(37, 99, 235, 0.12);
+  text-decoration-color: #8C3D2B !important; /* 赭石 - 标点 */
+  background-color: rgba(140, 61, 43, 0.08);
 }
 
 /* 悬浮提示 */
@@ -142,29 +143,35 @@
   color: #6b7280;
 }
 
-/* 成语标注（紫色） */
+/* 成语标注（赭石波浪线） */
 .miaob-idiom {
-  background-color: rgba(139, 92, 246, 0.15) !important;
-  border-bottom: 2px solid #8C3D2B !important;
+  background-color: rgba(140, 61, 43, 0.08) !important;
+  text-decoration: underline wavy #8C3D2B !important;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
   cursor: pointer;
   font-weight: 600;
   padding: 0 2px;
   border-radius: 2px;
 }
 
-/* 名句标注（绿色） */
+/* 名句标注（青绿波浪线） */
 .miaob-quote {
-  background-color: rgba(16, 185, 129, 0.12) !important;
-  border-bottom: 2px solid #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.08) !important;
+  text-decoration: underline wavy #10b981 !important;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
   cursor: pointer;
   padding: 0 2px;
   border-radius: 2px;
 }
 
-/* 歇后语标注（橙色） */
+/* 歇后语标注（琥珀波浪线） */
 .miaob-xiehouyu {
-  background-color: rgba(245, 158, 11, 0.12) !important;
-  border-bottom: 2px solid #f59e0b !important;
+  background-color: rgba(245, 158, 11, 0.08) !important;
+  text-decoration: underline wavy #f59e0b !important;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
   cursor: pointer;
   padding: 0 2px;
   border-radius: 2px;
