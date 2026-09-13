@@ -1123,10 +1123,10 @@ class MiaobContent {
     if (!el) {
       el = document.createElement('div')
       el.id = 'miaob-server-error'
-      el.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:2147483647;background:#dc2626;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.3);'
+      el.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:2147483647;background:#92400e;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.2);'
       document.body.appendChild(el)
     }
-    el.textContent = '⚠️ 检查服务暂时不可用，请稍后刷新页面重试'
+    el.textContent = '妙笔服务器暂时不可用，请稍后再试'
     el.style.display = 'block'
   }
 
