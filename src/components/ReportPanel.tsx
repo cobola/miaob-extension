@@ -175,7 +175,7 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
   }, [idioms.length, quotes.length, xiehouyu.length, expressions.length])
 
   const tabs = [
-    { key: 'idiom' as const, label: '成语', count: idioms.length, color: '#8b5cf6' },
+    { key: 'idiom' as const, label: '成语', count: idioms.length, color: '#8C3D2B' },
     { key: 'quote' as const, label: '名句', count: quotes.length, color: '#10b981' },
     { key: 'xiehouyu' as const, label: '歇后语', count: xiehouyu.length, color: '#f59e0b' },
     { key: 'expression' as const, label: '表达高光', count: expressions.length, color: '#06b6d4' },

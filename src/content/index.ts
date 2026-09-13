@@ -738,7 +738,7 @@ class MiaobContent {
     discoveries.forEach((d) => {
       const toast = document.createElement('div')
       const isFirst = d.order === 1
-      const bgColor = isFirst ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : '#4f46e5'
+      const bgColor = isFirst ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : '#8C3D2B'
       const icon = isFirst ? '🏆' : '⭐'
       const label = isFirst ? '首位发现' : `第${d.order}个发现`
 

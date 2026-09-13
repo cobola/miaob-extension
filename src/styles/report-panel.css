@@ -6,7 +6,7 @@
   bottom: 20px;
   width: 56px;
   height: 56px;
-  background: #4f46e5;
+  background: #8C3D2B;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -87,7 +87,7 @@
 .header-credits {
   display: block;
   margin-top: 3px;
-  color: #4f46e5;
+  color: #8C3D2B;
   font-size: 12px;
   font-weight: 600;
 }
@@ -100,10 +100,10 @@
 }
 
 .miaoben-btn {
-  border: 1px solid #8b5cf6;
+  border: 1px solid #8C3D2B;
   border-radius: 6px;
   background: white;
-  color: #8b5cf6;
+  color: #8C3D2B;
   padding: 6px 10px;
   font-size: 12px;
   font-weight: 500;
@@ -113,8 +113,8 @@
 }
 
 .miaoben-btn:hover {
-  background: #f5f3ff;
-  border-color: #7c3aed;
+  background: #F9F6F0;
+  border-color: #8C3D2B;
 }
 
 .user-id { font-size: 11px; color: #9ca3af; font-family: monospace; }
@@ -356,14 +356,14 @@
   background: #f9fafb;
 }
 
-.share-btn { width:100%; padding:10px; margin-bottom:10px; border:0; border-radius:8px; background:linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; font-size:14px; cursor:pointer; }
+.share-btn { width:100%; padding:10px; margin-bottom:10px; border:0; border-radius:8px; background:linear-gradient(135deg,#8C3D2B,#8C3D2B); color:#fff; font-size:14px; cursor:pointer; }
 .share-btn:disabled { opacity:.6; cursor:wait; }
 .share-overlay { position:fixed; inset:0; z-index:1000001; background:rgba(15,23,42,.45); display:flex; align-items:center; justify-content:center; }
 .share-modal { position:relative; width:340px; max-width:calc(100vw - 32px); background:#fff; border-radius:12px; padding:24px; box-shadow:0 12px 40px rgba(0,0,0,.25); }
 .share-modal h3 { margin:0 0 16px; font-size:18px; }
 .share-close { position:absolute; right:12px; top:10px; border:0; background:none; font-size:18px; color:#64748b; cursor:pointer; }
 .share-modal input { width:100%; box-sizing:border-box; padding:10px; border:1px solid #e5e7eb; border-radius:6px; font-size:12px; }
-.share-actions { display:flex; gap:8px; margin-top:12px; }.share-actions button { flex:1; padding:9px; border:1px solid #c7d2fe; border-radius:6px; background:#eef2ff; color:#4338ca; cursor:pointer; }.share-hint { margin-top:14px; color:#94a3b8; font-size:12px; text-align:center; }
+.share-actions { display:flex; gap:8px; margin-top:12px; }.share-actions button { flex:1; padding:9px; border:1px solid #F0DCD5; border-radius:6px; background:#FDF2F0; color:#8C3D2B; cursor:pointer; }.share-hint { margin-top:14px; color:#94a3b8; font-size:12px; text-align:center; }
 .share-qr { display:flex; justify-content:center; margin:12px 0; }
 .share-qr img { border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.08); }
 
@@ -390,7 +390,7 @@
   margin-left: auto;
   font-size: 18px;
   font-weight: 600;
-  color: #4f46e5;
+  color: #8C3D2B;
 }
 
 .activation-prompt.collapsed {
@@ -400,7 +400,7 @@
 .activation-btn {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #8C3D2B 0%, #8C3D2B 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -468,13 +468,13 @@
 
 .activation-form input:focus {
   outline: none;
-  border-color: #4f46e5;
+  border-color: #8C3D2B;
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
 }
 
 .activation-form .submit-btn {
   padding: 10px;
-  background: #4f46e5;
+  background: #8C3D2B;
   color: white;
   border: none;
   border-radius: 6px;
@@ -485,7 +485,7 @@
 }
 
 .activation-form .submit-btn:hover:not(:disabled) {
-  background: #4338ca;
+  background: #8C3D2B;
 }
 
 .activation-form .submit-btn:disabled {
@@ -539,7 +539,7 @@
   background: #e2e8f0;
 }
 .panel-tab.active {
-  background: var(--tab-color, #4f46e5);
+  background: var(--tab-color, #8C3D2B);
   color: #fff;
   font-weight: 600;
 }
@@ -578,7 +578,7 @@
   margin-bottom: 8px;
   border-radius: 6px;
 }
-.idiom-item { background: #faf5ff; border-left: 3px solid #8b5cf6; }
+.idiom-item { background: #FDF2F0; border-left: 3px solid #8C3D2B; }
 .quote-item { background: #f0fdf4; border-left: 3px solid #10b981; }
 .xiehouyu-item { background: #fffbeb; border-left: 3px solid #f59e0b; }
 
@@ -593,7 +593,7 @@
   margin-right: 6px;
   vertical-align: middle;
 }
-.tag-idiom { background: #8b5cf6; color: #fff; }
+.tag-idiom { background: #8C3D2B; color: #fff; }
 .tag-quote { background: #10b981; color: #fff; }
 .tag-xiehouyu { background: #f59e0b; color: #fff; }
 

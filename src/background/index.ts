@@ -327,7 +327,7 @@ function showSelectionCard(data: {
       }
 
       idioms.forEach(i => {
-        addItem('成语', '#8b5cf6', `${esc(i.idiom)}${i.derivation ? ' — ' + esc(i.derivation.slice(0, 40)) : ''}`)
+        addItem('成语', '#8C3D2B', `${esc(i.idiom)}${i.derivation ? ' — ' + esc(i.derivation.slice(0, 40)) : ''}`)
       })
       phrases.forEach(p => {
         const tag = p.type === 'quote' ? '名句' : '歇后语'

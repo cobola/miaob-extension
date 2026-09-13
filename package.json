@@ -1,12 +1,13 @@
 {
   "name": "miaob-extension",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "description": "妙笔 - 中文阅读伴侣，发现中文文章中的成语、名句与表达高光",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "sync-version": "node -e \"const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json'));const m=JSON.parse(fs.readFileSync('manifest.json'));m.version=p.version;fs.writeFileSync('manifest.json',JSON.stringify(m,null,2)+'\\n');console.log('manifest version synced to',p.version)\"",
     "build": "npm run sync-version && tsc && vite build && node scripts/build-content.mjs",
+    "build:store": "npm run build && node scripts/package-store.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
