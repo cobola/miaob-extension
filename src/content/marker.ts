@@ -1,4 +1,5 @@
 import type { TextError } from '../shared/types'
+import { t } from '../lib/i18n'
 
 // 错误标注器
 export class ErrorMarker {
@@ -16,7 +17,7 @@ export class ErrorMarker {
 
     const summary = document.createElement('div')
     summary.className = 'miaob-error-summary'
-    summary.textContent = `发现 ${errors.length} 处问题`
+    summary.textContent = t('marker_summary', errors.length)
     marker.appendChild(summary)
 
     const list = document.createElement('div')
@@ -36,7 +37,7 @@ export class ErrorMarker {
     if (errors.length > 5) {
       const more = document.createElement('div')
       more.className = 'miaob-error-more'
-      more.textContent = `还有 ${errors.length - 5} 处问题未展开`
+      more.textContent = t('marker_more', errors.length - 5)
       list.appendChild(more)
     }
 
@@ -54,7 +55,7 @@ export class ErrorMarker {
     const wrapper = this.getOrCreateWrapper(element)
     const marker = document.createElement('div')
     marker.className = 'miaob-service-error'
-    marker.textContent = `妙笔未连接到检查服务: ${message}`
+    marker.textContent = t('marker_noService', message)
     wrapper.appendChild(marker)
 
     element.classList.add('miaob-service-unavailable')
@@ -99,9 +100,9 @@ export class ErrorMarker {
       <div class="miaob-tooltip-message">${error.message}</div>
       ${error.suggestion ? `
         <div class="miaob-tooltip-suggestion">
-          建议：${error.suggestion}
+          ${t('marker_suggestion', error.suggestion)}
         </div>
-        <button class="miaob-tooltip-fix">修复</button>
+        <button class="miaob-tooltip-fix">${t('marker_fix')}</button>
       ` : ''}
     `
 

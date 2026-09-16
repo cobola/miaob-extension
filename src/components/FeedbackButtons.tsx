@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { TextError } from '../shared/types'
+import { t } from '../lib/i18n'
 
 interface FeedbackButtonsProps {
   error: TextError
@@ -32,7 +33,7 @@ export function FeedbackButtons({ error, onFeedback }: FeedbackButtonsProps) {
         className={`feedback-btn up ${feedback === 'up' ? 'active' : ''}`}
         onClick={(e) => handleFeedback(true, e)}
         disabled={feedback !== null || isSubmitting}
-        title="检测正确 +2 积分"
+        title={t('fb_correct')}
       >
         👍
       </button>
@@ -40,7 +41,7 @@ export function FeedbackButtons({ error, onFeedback }: FeedbackButtonsProps) {
         className={`feedback-btn down ${feedback === 'down' ? 'active' : ''}`}
         onClick={(e) => handleFeedback(false, e)}
         disabled={feedback !== null || isSubmitting}
-        title="检测错误 +5 积分"
+        title={t('fb_incorrect')}
       >
         👎
       </button>

@@ -4,5 +4,401 @@
   },
   "extensionDescription": {
     "message": "浏览中文网页时自动发现成语、名句和文章高光，点击查看解释、出处与上下文，还能收藏和分享。"
+  },
+  "panel_welcome": {
+    "message": "欢迎，$1，使用妙笔"
+  },
+  "panel_friend": {
+    "message": "朋友"
+  },
+  "panel_idPrefix": {
+    "message": "ID: $1"
+  },
+  "panel_credits": {
+    "message": "积分：$1"
+  },
+  "panel_miaoben": {
+    "message": "📖 妙笔本"
+  },
+  "panel_tabIdiom": {
+    "message": "成语"
+  },
+  "panel_tabQuote": {
+    "message": "名句"
+  },
+  "panel_tabXiehouyu": {
+    "message": "歇后语"
+  },
+  "panel_tabExpression": {
+    "message": "表达高光"
+  },
+  "panel_quotaNotice": {
+    "message": "今日表达分析剩余 $1 次，开通妙笔本后可无限使用"
+  },
+  "panel_vocabAria": {
+    "message": "本页阅读词汇统计"
+  },
+  "panel_vocabKicker": {
+    "message": "阅读概览"
+  },
+  "panel_vocabChars": {
+    "message": "字数"
+  },
+  "panel_vocabUnique": {
+    "message": "去重字"
+  },
+  "panel_vocabWords": {
+    "message": "词语"
+  },
+  "panel_readingLevel": {
+    "message": "阅读难度"
+  },
+  "panel_levelHint": {
+    "message": "普通中文读者估计"
+  },
+  "panel_easyChars": {
+    "message": "容易字"
+  },
+  "panel_maybeNewChars": {
+    "message": "可能生字"
+  },
+  "panel_trackAria": {
+    "message": "容易字 $1%，可能生字 $2%"
+  },
+  "panel_emptyIdioms": {
+    "message": "暂无成语"
+  },
+  "panel_emptyQuotes": {
+    "message": "暂无名句"
+  },
+  "panel_emptyXiehouyu": {
+    "message": "暂无歇后语"
+  },
+  "panel_share": {
+    "message": "📤 分享本页发现"
+  },
+  "panel_generating": {
+    "message": "生成中…"
+  },
+  "panel_voteUp": {
+    "message": "点赞"
+  },
+  "credits_label": {
+    "message": "积分"
+  },
+  "share_success": {
+    "message": "📤 分享成功！"
+  },
+  "share_qrAlt": {
+    "message": "扫码分享"
+  },
+  "share_hint": {
+    "message": "扫描二维码分享"
+  },
+  "share_copied": {
+    "message": "已复制"
+  },
+  "share_copyLink": {
+    "message": "复制链接"
+  },
+  "share_open": {
+    "message": "打开分享页"
+  },
+  "activation_cta": {
+    "message": "📱 微信扫码激活 送 100 积分"
+  },
+  "activation_title": {
+    "message": "微信扫码激活"
+  },
+  "activation_qrAlt": {
+    "message": "微信扫码激活"
+  },
+  "activation_waitScan": {
+    "message": "请使用微信扫码"
+  },
+  "activation_scanned": {
+    "message": "扫码成功，正在激活..."
+  },
+  "activation_binding": {
+    "message": "正在绑定账号..."
+  },
+  "activation_success": {
+    "message": "🎉 激活成功，获得 100 积分！"
+  },
+  "activation_loadingQr": {
+    "message": "正在加载二维码..."
+  },
+  "activation_failed": {
+    "message": "激活失败"
+  },
+  "popupAct_title": {
+    "message": "账号激活"
+  },
+  "popupAct_wechat": {
+    "message": "微信扫码"
+  },
+  "popupAct_email": {
+    "message": "邮箱验证"
+  },
+  "popupAct_activated": {
+    "message": "已激活"
+  },
+  "popupAct_qrFail": {
+    "message": "二维码加载失败"
+  },
+  "popupAct_waitScan": {
+    "message": "请使用微信扫码"
+  },
+  "popupAct_scanned": {
+    "message": "扫码成功，登录中..."
+  },
+  "popupAct_activating": {
+    "message": "正在激活..."
+  },
+  "popupAct_success": {
+    "message": "🎉 激活成功 $1"
+  },
+  "popupAct_emailPlaceholder": {
+    "message": "邮箱地址"
+  },
+  "popupAct_codePlaceholder": {
+    "message": "验证码"
+  },
+  "popupAct_verify": {
+    "message": "验证"
+  },
+  "popupAct_sendCode": {
+    "message": "发送验证码"
+  },
+  "popupAct_codeSent": {
+    "message": "验证码已发送，请查收邮件"
+  },
+  "popupAct_sendFailed": {
+    "message": "发送失败"
+  },
+  "popupAct_verifyFailed": {
+    "message": "验证失败"
+  },
+  "popupAct_pollFailed": {
+    "message": "轮询扫码状态失败"
+  },
+  "popupAct_qrGetFailed": {
+    "message": "获取二维码失败"
+  },
+  "err_typo": {
+    "message": "错别字"
+  },
+  "err_grammar": {
+    "message": "语法错误"
+  },
+  "err_punctuation": {
+    "message": "标点错误"
+  },
+  "err_sensitive": {
+    "message": "规范用词"
+  },
+  "err_redundant": {
+    "message": "冗余表达"
+  },
+  "err_collocation": {
+    "message": "搭配不当"
+  },
+  "fb_correct": {
+    "message": "检测正确 +2 积分"
+  },
+  "fb_incorrect": {
+    "message": "检测错误 +5 积分"
+  },
+  "popup_loading": {
+    "message": "加载中..."
+  },
+  "popup_tagline": {
+    "message": "中文阅读伴侣"
+  },
+  "popup_checking": {
+    "message": "检查中..."
+  },
+  "popup_checkPage": {
+    "message": "检查页面"
+  },
+  "popup_clearMarks": {
+    "message": "清除标注"
+  },
+  "popup_enableCheck": {
+    "message": "启用检查"
+  },
+  "popup_autoCheck": {
+    "message": "自动检查"
+  },
+  "popup_checkOnBlur": {
+    "message": "失焦时检查"
+  },
+  "popup_shortcut": {
+    "message": "快捷键 Ctrl+Shift+E"
+  },
+  "marker_summary": {
+    "message": "发现 $1 处问题"
+  },
+  "marker_more": {
+    "message": "还有 $1 处问题未展开"
+  },
+  "marker_noService": {
+    "message": "妙笔未连接到检查服务: $1"
+  },
+  "marker_suggestion": {
+    "message": "建议：$1"
+  },
+  "marker_fix": {
+    "message": "修复"
+  },
+  "bg_cardTitle": {
+    "message": "妙笔检查"
+  },
+  "bg_checkFailed": {
+    "message": "检查失败：$1"
+  },
+  "bg_noFindings": {
+    "message": "未发现成语、名句或歇后语"
+  },
+  "bg_foundCount": {
+    "message": "发现 $1 个成语 · $2 个名句/歇后语"
+  },
+  "bg_idiom": {
+    "message": "成语"
+  },
+  "bg_quote": {
+    "message": "名句"
+  },
+  "bg_xiehouyu": {
+    "message": "歇后语"
+  },
+  "bg_contextMenuCheck": {
+    "message": "妙笔检查这段文字"
+  },
+  "bg_contextMenuSettings": {
+    "message": "设置"
+  },
+  "bg_httpError": {
+    "message": "检查失败 (HTTP $1)"
+  },
+  "bg_timeout": {
+    "message": "检查超时（LLM 校验超过 120 秒）"
+  },
+  "bg_noTab": {
+    "message": "未找到当前标签页"
+  },
+  "ct_firstDiscovery": {
+    "message": "首位发现"
+  },
+  "ct_nthDiscovery": {
+    "message": "第$1个发现"
+  },
+  "ct_points": {
+    "message": "+$1积分"
+  },
+  "ct_tooltipQuote": {
+    "message": "名句"
+  },
+  "ct_tooltipXiehouyu": {
+    "message": "歇后语"
+  },
+  "ct_tooltipMore": {
+    "message": "点击查看更多"
+  },
+  "ct_tooltipLink": {
+    "message": "查看更多 → $1"
+  },
+  "ct_cardLoading": {
+    "message": "加载中…"
+  },
+  "ct_cardLoadFail": {
+    "message": "加载失败，请稍后重试"
+  },
+  "ct_cardClose": {
+    "message": "关闭"
+  },
+  "ct_cardZdic": {
+    "message": "🔗 汉典详解"
+  },
+  "ct_cardAdd": {
+    "message": "📋 加入妙笔本"
+  },
+  "ct_cardAdded": {
+    "message": "✓ 已加入妙笔本"
+  },
+  "ct_cardAddFail": {
+    "message": "加入失败，请重试"
+  },
+  "ct_cardMeaning": {
+    "message": "释义"
+  },
+  "ct_cardDerivation": {
+    "message": "出处"
+  },
+  "ct_cardSynonym": {
+    "message": "同义"
+  },
+  "ct_cardAntonym": {
+    "message": "反义"
+  },
+  "ct_guideTitle": {
+    "message": "📖 妙笔本"
+  },
+  "ct_guideDesc": {
+    "message": "自动收藏你阅读中遇到的成语、名句，随时温习"
+  },
+  "ct_guideLoadingQr": {
+    "message": "加载二维码中..."
+  },
+  "ct_guideHint": {
+    "message": "微信扫码激活，送 100 积分，可无限收藏"
+  },
+  "ct_guideLoadFail": {
+    "message": "加载失败，请刷新重试"
+  },
+  "ct_guideQrFail": {
+    "message": "二维码获取失败"
+  },
+  "ct_guideQrAlt": {
+    "message": "微信扫码"
+  },
+  "ct_guideScanned": {
+    "message": "✓ 扫码成功，激活中..."
+  },
+  "ct_guideSuccess": {
+    "message": "🎉 激活成功！+100 积分"
+  },
+  "ct_guideFail": {
+    "message": "激活失败，请重试"
+  },
+  "ct_serverUnavailable": {
+    "message": "妙笔服务器暂时不可用，请稍后再试"
+  },
+  "ct_titleSource": {
+    "message": "出处：$1"
+  },
+  "ct_exprGolden": {
+    "message": "金句"
+  },
+  "ct_exprParallelism": {
+    "message": "排比"
+  },
+  "ct_exprContrast": {
+    "message": "对比"
+  },
+  "ct_exprRhetorical": {
+    "message": "设问"
+  },
+  "ct_exprNumeric": {
+    "message": "数字冲击"
+  },
+  "ct_exprMetaphor": {
+    "message": "比喻"
+  },
+  "ct_exprCitation": {
+    "message": "引用"
+  },
+  "ct_exprHighlight": {
+    "message": "表达高光"
   }
 }

@@ -14,6 +14,7 @@ import { ReportPanel } from '../components/ReportPanel'
 import { createElement } from 'react'
 import { calculateVocabularyStats, VocabularyStats } from './vocabulary-stats'
 import idiomDetails from '../data-idiom-details.json'
+import { t } from '../lib/i18n'
 
 console.log('妙笔 Content Script 已加载')
 
@@ -748,10 +749,10 @@ class MiaobContent {
       const isFirst = d.order === 1
       const bgColor = isFirst ? 'linear-gradient(135deg, #fbbf24, #f59e0b)' : '#8C3D2B'
       const icon = isFirst ? '🏆' : '⭐'
-      const label = isFirst ? '首位发现' : `第${d.order}个发现`
+      const label = isFirst ? t('ct_firstDiscovery') : t('ct_nthDiscovery', d.order)
 
       toast.style.cssText = `background:${bgColor};color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.2);animation:miaob-slide-down .3s ease;display:flex;align-items:center;gap:8px;pointer-events:auto;`
-      toast.innerHTML = `<span>${icon}</span><span>${label}【${d.text}】 +${d.points}积分</span>`
+      toast.innerHTML = `<span>${icon}</span><span>${label}【${d.text}】 ${t('ct_points', d.points)}</span>`
 
       container.appendChild(toast)
 
@@ -830,9 +831,9 @@ class MiaobContent {
     let parsed: URL
     try { parsed = new URL(url); if (!['https:', 'http:'].includes(parsed.protocol)) return } catch { return }
     const tooltip = document.createElement('div'); tooltip.className = 'miaob-tooltip'
-    const header = document.createElement('div'); header.className = 'miaob-tooltip-header'; header.textContent = `${target.dataset.type === 'quote' ? '名句' : '歇后语'}：${target.textContent || ''}`
-    const body = document.createElement('div'); body.className = 'miaob-tooltip-body'; body.textContent = target.title || '点击查看更多'
-    const link = document.createElement('a'); link.className = 'miaob-tooltip-link'; link.textContent = `查看更多 → ${parsed.hostname.replace(/^www\./, '')}`; link.href = parsed.href; link.target = '_blank'; link.rel = 'noopener noreferrer'
+    const header = document.createElement('div'); header.className = 'miaob-tooltip-header'; header.textContent = `${target.dataset.type === 'quote' ? t('ct_tooltipQuote') : t('ct_tooltipXiehouyu')}：${target.textContent || ''}`
+    const body = document.createElement('div'); body.className = 'miaob-tooltip-body'; body.textContent = target.title || t('ct_tooltipMore')
+    const link = document.createElement('a'); link.className = 'miaob-tooltip-link'; link.textContent = t('ct_tooltipLink', parsed.hostname.replace(/^www\./, '')); link.href = parsed.href; link.target = '_blank'; link.rel = 'noopener noreferrer'
     tooltip.append(header, body, link); document.body.appendChild(tooltip)
     const rect = target.getBoundingClientRect(); tooltip.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - tooltip.offsetWidth - 8))}px`; tooltip.style.top = `${rect.bottom + 4}px`
     const close = () => tooltip.remove(); target.addEventListener('mouseleave', close, { once: true }); tooltip.addEventListener('mouseleave', close, { once: true })
@@ -876,7 +877,7 @@ class MiaobContent {
     card.className = 'miaob-idiom-card'
     const loading = document.createElement('div')
     loading.className = 'miaob-card-loading'
-    loading.textContent = '加载中…'
+    loading.textContent = t('ct_cardLoading')
     card.appendChild(loading)
     document.body.appendChild(card)
     this.idiomCard = card
@@ -895,7 +896,7 @@ class MiaobContent {
       this.positionIdiomCard(card, target)
     } catch {
       if (requestId === this.idiomRequestId && this.idiomCard === card) {
-        loading.textContent = '加载失败，请稍后重试'
+        loading.textContent = t('ct_cardLoadFail')
       }
     }
   }
@@ -911,17 +912,17 @@ class MiaobContent {
     const header = document.createElement('div'); header.className = 'miaob-card-header'
     const title = document.createElement('strong'); title.className = 'miaob-card-title'; title.textContent = data.idiom || ''
     const pinyin = document.createElement('span'); pinyin.className = 'miaob-card-pinyin'; pinyin.textContent = data.pinyin || ''
-    const close = document.createElement('button'); close.className = 'miaob-card-close'; close.type = 'button'; close.textContent = '✕'; close.setAttribute('aria-label', '关闭'); close.onclick = () => this.closeIdiomCard()
+    const close = document.createElement('button'); close.className = 'miaob-card-close'; close.type = 'button'; close.textContent = '✕'; close.setAttribute('aria-label', t('ct_cardClose')); close.onclick = () => this.closeIdiomCard()
     header.append(title, pinyin, close); card.appendChild(header)
     const body = document.createElement('div'); body.className = 'miaob-card-body'
     const addSection = (label: string, value: unknown) => { if (!value) return; const section = document.createElement('section'); section.className = 'miaob-card-section'; const l = document.createElement('div'); l.className = 'miaob-card-label'; l.textContent = label; const v = document.createElement('div'); v.textContent = String(value); section.append(l, v); body.appendChild(section) }
-    addSection('释义', data.explanation); addSection('出处', data.derivation)
+    addSection(t('ct_cardMeaning'), data.explanation); addSection(t('ct_cardDerivation'), data.derivation)
     const relations = data.relations || { synonyms: data.synonym || [], antonyms: data.antonym || [] }
     const relationBox = document.createElement('div'); relationBox.className = 'miaob-card-relations'
     const addRelations = (label: string, values: unknown[], type: string) => { if (!Array.isArray(values) || !values.length) return; const group = document.createElement('div'); group.className = 'miaob-card-rel-group'; const l = document.createElement('div'); l.className = 'miaob-card-label'; l.textContent = label; const items = document.createElement('div'); items.className = 'miaob-card-rel-items'; values.slice(0, 8).forEach(value => { const b = document.createElement('button'); b.type = 'button'; b.className = 'miaob-card-rel-item'; b.textContent = String(value); b.onclick = () => { const found = this.findAnnotation(String(value), type); if (found) this.scrollToAnnotation(String(value), type); else this.openRelatedIdiom(String(value), card) }; items.appendChild(b) }); group.append(l, items); relationBox.appendChild(group) }
-    addRelations('同义', relations.synonyms, 'idiom'); addRelations('反义', relations.antonyms, 'idiom'); if (relationBox.childElementCount) body.appendChild(relationBox); card.appendChild(body)
-    const footer = document.createElement('div'); footer.className = 'miaob-card-footer'; const link = document.createElement('a'); link.className = 'miaob-card-link'; link.textContent = '🔗 汉典详解'; link.href = typeof data.zdicUrl === 'string' && data.zdicUrl ? data.zdicUrl : `https://www.zdic.net/hans/${encodeURIComponent(data.idiom || '')}`; link.target = '_blank'; link.rel = 'noopener noreferrer'; footer.appendChild(link)
-    const add = document.createElement('button'); add.type = 'button'; add.className = 'miaob-card-add'; add.textContent = '📋 加入妙笔本'; add.onclick = () => { add.disabled = true; chrome.runtime.sendMessage({ type: 'ADD_MIAOBEN', idiom: data.idiom, sourceUrl: location.href }, (response) => { if (response?.needsActivation) { this.showActivationGuide(card, data.idiom, add); add.disabled = false; add.textContent = '📋 加入妙笔本' } else { add.disabled = false; add.textContent = response?.success ? '✓ 已加入妙笔本' : '加入失败，请重试' } }) }; footer.appendChild(add); card.appendChild(footer)
+    addRelations(t('ct_cardSynonym'), relations.synonyms, 'idiom'); addRelations(t('ct_cardAntonym'), relations.antonyms, 'idiom'); if (relationBox.childElementCount) body.appendChild(relationBox); card.appendChild(body)
+    const footer = document.createElement('div'); footer.className = 'miaob-card-footer'; const link = document.createElement('a'); link.className = 'miaob-card-link'; link.textContent = t('ct_cardZdic'); link.href = typeof data.zdicUrl === 'string' && data.zdicUrl ? data.zdicUrl : `https://www.zdic.net/hans/${encodeURIComponent(data.idiom || '')}`; link.target = '_blank'; link.rel = 'noopener noreferrer'; footer.appendChild(link)
+    const add = document.createElement('button'); add.type = 'button'; add.className = 'miaob-card-add'; add.textContent = t('ct_cardAdd'); add.onclick = () => { add.disabled = true; chrome.runtime.sendMessage({ type: 'ADD_MIAOBEN', idiom: data.idiom, sourceUrl: location.href }, (response) => { if (response?.needsActivation) { this.showActivationGuide(card, data.idiom, add); add.disabled = false; add.textContent = t('ct_cardAdd') } else { add.disabled = false; add.textContent = response?.success ? t('ct_cardAdded') : t('ct_cardAddFail') } }) }; footer.appendChild(add); card.appendChild(footer)
     card.onclick = (e) => { if (!(e.target as HTMLElement).closest('button,a')) { this.idiomPinned = true; card.classList.add('pinned') } }
   }
 
@@ -937,7 +938,7 @@ class MiaobContent {
       this.idiomDetailCache.set(idiom, { data, expiresAt: Date.now() + 3600000 })
       if (this.idiomCard === card) this.renderIdiomCard(card, data)
     } catch {
-      const message = document.createElement('div'); message.className = 'miaob-card-loading'; message.textContent = '加载失败，请稍后重试'; card.replaceChildren(message)
+      const message = document.createElement('div'); message.className = 'miaob-card-loading'; message.textContent = t('ct_cardLoadFail'); card.replaceChildren(message)
     }
   }
 
@@ -959,12 +960,12 @@ class MiaobContent {
     guide.className = 'miaob-activation-guide'
     guide.innerHTML = `
       <div class="miaob-guide-inner">
-        <div class="miaob-guide-title">📖 妙笔本</div>
-        <div class="miaob-guide-desc">自动收藏你阅读中遇到的成语、名句，随时温习</div>
+        <div class="miaob-guide-title">${t('ct_guideTitle')}</div>
+        <div class="miaob-guide-desc">${t('ct_guideDesc')}</div>
         <div class="miaob-guide-qr" id="miaob-guide-qr-${Date.now()}">
-          <div class="miaob-guide-loading">加载二维码中...</div>
+          <div class="miaob-guide-loading">${t('ct_guideLoadingQr')}</div>
         </div>
-        <div class="miaob-guide-hint">微信扫码激活，送 100 积分，可无限收藏</div>
+        <div class="miaob-guide-hint">${t('ct_guideHint')}</div>
         <button class="miaob-guide-close" type="button">✕</button>
       </div>
     `
@@ -984,7 +985,7 @@ class MiaobContent {
     // 创建激活会话
     chrome.runtime.sendMessage({ type: 'ACTIVATION_START' }, (startResp) => {
       if (!startResp?.success) {
-        container.innerHTML = '<div class="miaob-guide-error">加载失败，请刷新重试</div>'
+        container.innerHTML = '<div class="miaob-guide-error">' + t('ct_guideLoadFail') + '</div>'
         return
       }
       const sessionId = startResp.data.sessionId
@@ -992,17 +993,17 @@ class MiaobContent {
       // 获取二维码
       chrome.runtime.sendMessage({ type: 'WECHAT_QRCODE', sessionId }, (qrResp) => {
         if (!qrResp?.success) {
-          container.innerHTML = '<div class="miaob-guide-error">二维码获取失败</div>'
+          container.innerHTML = '<div class="miaob-guide-error">' + t('ct_guideQrFail') + '</div>'
           return
         }
-        container.innerHTML = `<img src="${qrResp.data.qrcodeUrl}" alt="微信扫码" class="miaob-guide-qrimg" />`
+        container.innerHTML = `<img src="${qrResp.data.qrcodeUrl}" alt="${t('ct_guideQrAlt')}" class="miaob-guide-qrimg" />`
 
         // 轮询扫码状态
         const poll = setInterval(() => {
           chrome.runtime.sendMessage({ type: 'WECHAT_STATUS', sessionId }, (statusResp) => {
             if (statusResp?.success && statusResp.data.scanned) {
               clearInterval(poll)
-              container.innerHTML = '<div class="miaob-guide-success">✓ 扫码成功，激活中...</div>'
+              container.innerHTML = '<div class="miaob-guide-success">' + t('ct_guideScanned') + '</div>'
               this.completeActivation(sessionId, idiom, addBtn, container)
             }
           })
@@ -1018,22 +1019,22 @@ class MiaobContent {
   private completeActivation(sessionId: string, idiom: string, addBtn: HTMLButtonElement, container: HTMLElement) {
     chrome.runtime.sendMessage({ type: 'ACTIVATION_COMPLETE', sessionId }, (resp) => {
       if (resp?.success) {
-        container.innerHTML = '<div class="miaob-guide-success">🎉 激活成功！+100 积分</div>'
+        container.innerHTML = '<div class="miaob-guide-success">' + t('ct_guideSuccess') + '</div>'
         // 更新本地激活状态
         chrome.storage.local.set({ isActivated: true, credits: resp.data?.credits || 0 })
         // 自动重试加入妙笔本
         setTimeout(() => {
           chrome.runtime.sendMessage({ type: 'ADD_MIAOBEN', idiom, sourceUrl: location.href }, (addResp) => {
             if (addResp?.success) {
-              addBtn.textContent = '✓ 已加入妙笔本'
+              addBtn.textContent = t('ct_cardAdded')
             } else {
-              addBtn.textContent = '📋 加入妙笔本'
+              addBtn.textContent = t('ct_cardAdd')
             }
           })
         }, 800)
-        setTimeout(() => { container.closest('.miaob-activation-guide')?.remove() }, 2000)
+        setTimeout(() => { container.closest('_miaob-activation-guide')?.remove() }, 2000)
       } else {
-        container.innerHTML = '<div class="miaob-guide-error">激活失败，请重试</div>'
+        container.innerHTML = '<div class="miaob-guide-error">' + t('ct_guideFail') + '</div>'
       }
     })
   }
@@ -1141,7 +1142,7 @@ class MiaobContent {
       el.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:2147483647;background:#92400e;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.2);'
       document.body.appendChild(el)
     }
-    el.textContent = '妙笔服务器暂时不可用，请稍后再试'
+    el.textContent = t('ct_serverUnavailable')
     el.style.display = 'block'
   }
 
@@ -1591,19 +1592,19 @@ class MiaobContent {
     } else if (mark.kind === 'quote' && mark.phrase) {
       const p = mark.phrase
       span.className = 'miaob-quote'
-      span.title = p.from ? `出处：${p.from}` : '名句'
+      span.title = p.from ? t('ct_titleSource', p.from) : t('ct_tooltipQuote')
       span.dataset.type = 'quote'
       span.dataset.url = `https://so.gushiwen.cn/search.aspx?value=${encodeURIComponent(p.text)}&type=title`
     } else if (mark.kind === 'xiehouyu' && mark.phrase) {
       const p = mark.phrase
       span.className = 'miaob-xiehouyu'
-      span.title = p.answer ? `${p.text}——${p.answer}` : '歇后语'
+      span.title = p.answer ? `${p.text}——${p.answer}` : t('ct_tooltipXiehouyu')
       span.dataset.type = 'xiehouyu'
       span.dataset.url = `https://www.xiehouyu.cn/search.php?keyword=${encodeURIComponent(p.text)}`
     } else if (mark.kind === 'expression' && mark.expression) {
       span.className = 'miaob-expression'
       span.dataset.type = 'expression'
-      span.title = ({ golden_sentence: '金句', parallelism: '排比', contrast: '对比', rhetorical_question: '设问', numeric_impact: '数字冲击' } as Record<string, string>)[mark.expression.type] || '表达高光'
+      span.title = ({ golden_sentence: t('ct_exprGolden'), parallelism: t('ct_exprParallelism'), contrast: t('ct_exprContrast'), rhetorical_question: t('ct_exprRhetorical'), numeric_impact: t('ct_exprNumeric') } as Record<string, string>)[mark.expression.type] || t('ct_exprHighlight')
     }
 
     span.textContent = text

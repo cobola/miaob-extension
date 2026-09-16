@@ -1,5 +1,6 @@
 import { TextError } from '../shared/types'
 import { FeedbackButtons } from './FeedbackButtons'
+import { t } from '../lib/i18n'
 
 interface ErrorItemProps {
   error: TextError
@@ -8,12 +9,12 @@ interface ErrorItemProps {
 }
 
 const ERROR_TYPE_LABELS: Record<string, string> = {
-  typo: '错别字',
-  grammar: '语法错误',
-  punctuation: '标点错误',
-  sensitive: '规范用词',
-  redundant: '冗余表达',
-  collocation: '搭配不当',
+  typo: t('err_typo'),
+  grammar: t('err_grammar'),
+  punctuation: t('err_punctuation'),
+  sensitive: t('err_sensitive'),
+  redundant: t('err_redundant'),
+  collocation: t('err_collocation'),
 }
 
 export function ErrorItem({ error, onFeedback, onClick }: ErrorItemProps) {

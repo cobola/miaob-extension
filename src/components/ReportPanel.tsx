@@ -4,6 +4,7 @@ import '../styles/report-panel.css'
 import { ShareModal } from './ShareModal'
 import { expressionVoteService } from '../services/expression-vote.service'
 import { userService } from '../services/user.service'
+import { t } from '../lib/i18n'
 import type { VocabularyStats } from '../content/vocabulary-stats'
 
 // 同步简单 hash（用于本地状态追踪，避免异步阻塞按钮）
@@ -30,7 +31,7 @@ interface ReportPanelProps {
   onItemClick?: (text: string, type: 'idiom' | 'quote' | 'xiehouyu' | 'expression', start?: number, end?: number) => void
 }
 
-const expressionLabels: Record<string, string> = { golden_sentence: '金句', parallelism: '排比', contrast: '对比', rhetorical_question: '设问', numeric_impact: '数字', metaphor: '比喻', citation: '引用' }
+const expressionLabels: Record<string, string> = { golden_sentence: t('ct_exprGolden'), parallelism: t('ct_exprParallelism'), contrast: t('ct_exprContrast'), rhetorical_question: t('ct_exprRhetorical'), numeric_impact: t('ct_exprNumeric'), metaphor: t('ct_exprMetaphor'), citation: t('ct_exprCitation') }
 
 export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressions = [], quota, vocabularyStats, onItemClick }: ReportPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
@@ -183,10 +184,10 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
   }, [idioms.length, quotes.length, xiehouyu.length, expressions.length])
 
   const tabs = [
-    { key: 'idiom' as const, label: '成语', count: idioms.length, color: '#8C3D2B' },
-    { key: 'quote' as const, label: '名句', count: quotes.length, color: '#10b981' },
-    { key: 'xiehouyu' as const, label: '歇后语', count: xiehouyu.length, color: '#f59e0b' },
-    { key: 'expression' as const, label: '表达高光', count: expressions.length, color: '#06b6d4' },
+    { key: 'idiom' as const, label: t('panel_tabIdiom'), count: idioms.length, color: '#8C3D2B' },
+    { key: 'quote' as const, label: t('panel_tabQuote'), count: quotes.length, color: '#10b981' },
+    { key: 'xiehouyu' as const, label: t('panel_tabXiehouyu'), count: xiehouyu.length, color: '#f59e0b' },
+    { key: 'expression' as const, label: t('panel_tabExpression'), count: expressions.length, color: '#06b6d4' },
   ]
 
   return (
@@ -199,11 +200,11 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
       <div className={`miaob-panel ${isOpen ? 'open' : ''}`}>
         <div className="panel-header">
           <div className="panel-heading">
-            <h3>欢迎，{userName || '朋友'}，使用妙笔</h3>
-            <div className="panel-user-meta">{userId && <span className="user-id" title={userId}>ID: {userId.slice(0, 8)}</span>}<span className="header-credits">积分：{credits}</span></div>
+            <h3>{t('panel_welcome', userName || t('panel_friend'))}</h3>
+            <div className="panel-user-meta">{userId && <span className="user-id" title={userId}>{t('panel_idPrefix', userId.slice(0, 8))}</span>}<span className="header-credits">{t('panel_credits', credits)}</span></div>
           </div>
           <div className="header-actions">
-            <button className="miaoben-btn" onClick={handleOpenMiaoben}>📖 妙笔本</button>
+            <button className="miaoben-btn" onClick={handleOpenMiaoben}>{t('panel_miaoben')}</button>
             <button className="close-btn" onClick={() => setIsOpen(false)}>✕</button>
           </div>
         </div>
@@ -222,28 +223,28 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
         </div>
 
         <div className="panel-content">
-          {quota && !quota.isPaid && quota.remaining <= 3 && <div className="quota-notice">今日表达分析剩余 {quota.remaining} 次，开通妙笔本后可无限使用</div>}
+          {quota && !quota.isPaid && quota.remaining <= 3 && <div className="quota-notice">{t('panel_quotaNotice', quota.remaining)}</div>}
           {vocabularyStats && vocabularyStats.totalChineseChars > 0 && (
-            <div className="vocabulary-stats" aria-label="本页阅读词汇统计">
-              <div className="vocabulary-heading"><span className="vocabulary-kicker">阅读概览</span></div>
+            <div className="vocabulary-stats" aria-label={t('panel_vocabAria')}>
+              <div className="vocabulary-heading"><span className="vocabulary-kicker">{t('panel_vocabKicker')}</span></div>
               <div className="vocabulary-metrics">
-                <div><strong>{vocabularyStats.totalChineseChars.toLocaleString()}</strong><span>字数</span></div>
-                <div><strong>{vocabularyStats.uniqueChineseChars.toLocaleString()}</strong><span>去重字</span></div>
-                <div><strong>{vocabularyStats.uniqueWords.toLocaleString()}</strong><span>词语</span></div>
+                <div><strong>{vocabularyStats.totalChineseChars.toLocaleString()}</strong><span>{t('panel_vocabChars')}</span></div>
+                <div><strong>{vocabularyStats.uniqueChineseChars.toLocaleString()}</strong><span>{t('panel_vocabUnique')}</span></div>
+                <div><strong>{vocabularyStats.uniqueWords.toLocaleString()}</strong><span>{t('panel_vocabWords')}</span></div>
               </div>
-              <div className="vocabulary-readability-label"><span>阅读难度</span><b>{vocabularyStats.readability}</b><small>普通中文读者估计</small></div>
-              <div className="vocabulary-readability"><div><span className="easy-dot" />容易字 <b>{vocabularyStats.easyChars}</b><small>{vocabularyStats.easyPercent}%</small></div><div><span className="difficult-dot" />可能生字 <b>{vocabularyStats.difficultChars}</b><small>{100 - vocabularyStats.easyPercent}%</small></div></div>
-              <div className="vocabulary-track vocabulary-readability-track" aria-label={`容易字 ${vocabularyStats.easyPercent}%，可能生字 ${100 - vocabularyStats.easyPercent}%`}><i style={{ width: `${vocabularyStats.easyPercent}%` }} /><b style={{ width: `${100 - vocabularyStats.easyPercent}%` }} /></div>
+              <div className="vocabulary-readability-label"><span>{t('panel_readingLevel')}</span><b>{vocabularyStats.readability}</b><small>{t('panel_levelHint')}</small></div>
+              <div className="vocabulary-readability"><div><span className="easy-dot" />{t('panel_easyChars')} <b>{vocabularyStats.easyChars}</b><small>{vocabularyStats.easyPercent}%</small></div><div><span className="difficult-dot" />{t('panel_maybeNewChars')} <b>{vocabularyStats.difficultChars}</b><small>{100 - vocabularyStats.easyPercent}%</small></div></div>
+              <div className="vocabulary-track vocabulary-readability-track" aria-label={t('panel_trackAria', vocabularyStats.easyPercent, 100 - vocabularyStats.easyPercent)}><i style={{ width: `${vocabularyStats.easyPercent}%` }} /><b style={{ width: `${100 - vocabularyStats.easyPercent}%` }} /></div>
             </div>
           )}
           {activeTab === 'idiom' && (
             idioms.length === 0 ? (
-              <div className="empty-state"><p>暂无成语</p></div>
+              <div className="empty-state"><p>{t('panel_emptyIdioms')}</p></div>
             ) : (
               <div className="report-list">
                 {idioms.map((i, idx) => (
                   <div key={idx} className="report-item idiom-item" onClick={() => onItemClick?.(i.idiom, 'idiom')}>
-                      <span className="report-tag tag-idiom">成语</span>
+                      <span className="report-tag tag-idiom">{t('panel_tabIdiom')}</span>
                       <div className="report-content">
                         <span className="report-text">{i.idiom}</span>
                         {i.explanation && <span className="report-note">{i.explanation.slice(0, 42)}</span>}
@@ -256,12 +257,12 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
           )}
           {activeTab === 'quote' && (
             quotes.length === 0 ? (
-              <div className="empty-state"><p>暂无名句</p></div>
+              <div className="empty-state"><p>{t('panel_emptyQuotes')}</p></div>
             ) : (
               <div className="report-list">
                 {quotes.map((q, idx) => (
                   <div key={idx} className="report-item quote-item" onClick={() => onItemClick?.(q.text, 'quote')}>
-                    <span className="report-tag tag-quote">名句</span>
+                    <span className="report-tag tag-quote">{t('panel_tabQuote')}</span>
                     <div className="report-content">
                       <span className="report-text">{q.text}</span>
                       {q.from && <span className="report-note"> — {q.from}</span>}
@@ -273,12 +274,12 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
           )}
           {activeTab === 'xiehouyu' && (
             xiehouyu.length === 0 ? (
-              <div className="empty-state"><p>暂无歇后语</p></div>
+              <div className="empty-state"><p>{t('panel_emptyXiehouyu')}</p></div>
             ) : (
               <div className="report-list">
                 {xiehouyu.map((x, idx) => (
                   <div key={idx} className="report-item xiehouyu-item" onClick={() => onItemClick?.(x.text, 'xiehouyu')}>
-                    <span className="report-tag tag-xiehouyu">歇后语</span>
+                    <span className="report-tag tag-xiehouyu">{t('panel_tabXiehouyu')}</span>
                     <div className="report-content">
                       <span className="report-text">{x.text}</span>
                       {x.answer && <span className="report-note"> — {x.answer}</span>}
@@ -293,13 +294,13 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
               {expressions.map((e, idx) => (
                 <div key={idx} className="report-item expression-item" onClick={() => onItemClick?.(e.text, 'expression')}>
                   <div className="expression-sidebar">
-                    <span className="report-tag tag-expression">{expressionLabels[e.type] || '高光'}</span>
+                    <span className="report-tag tag-expression">{expressionLabels[e.type] || t('ct_exprHighlight')}</span>
                     <div className="vote-actions">
                       <button
                         className={`vote-btn${voteStatusMap[exprHashes[idx]]?.hasVoted ? ' voted' : ''}`}
                         onClick={(ev) => { ev.stopPropagation(); handleVote(exprHashes[idx] || simpleHash(e.text), e.text, e.type) }}
                         disabled={voteLoading[exprHashes[idx]] || voteStatusMap[exprHashes[idx]]?.hasVoted}
-                        title="点赞"
+                        title={t('panel_voteUp')}
                       >
                         {(() => { const s = voteStatusMap[exprHashes[idx]]; console.log('[Miaob] 渲染按钮', idx, exprHashes[idx], s?.hasVoted, s?.totalVotes); return s?.hasVoted ? <span className="vote-count">{s.totalVotes}</span> : '👍'; })()}
                       </button>
@@ -313,7 +314,7 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
         </div>
 
         <div className="panel-footer">
-          {totalFindings > 0 && <button className="share-btn" onClick={handleShare} disabled={sharing}>{sharing ? '生成中…' : '📤 分享本页发现'}</button>}
+          {totalFindings > 0 && <button className="share-btn" onClick={handleShare} disabled={sharing}>{sharing ? t('panel_generating') : t('panel_share')}</button>}
           {!isActivated && <ActivationPrompt onActivated={handleActivation} />}
         </div>
       </div>

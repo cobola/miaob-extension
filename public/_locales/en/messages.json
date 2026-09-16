@@ -4,5 +4,401 @@
   },
   "extensionDescription": {
     "message": "Automatically highlights idioms, famous quotes and xiehouyu as you read Chinese web pages. Hover to see origins and meanings. Makes reading more enjoyable and insightful."
+  },
+  "panel_welcome": {
+    "message": "Welcome, $1! Miaob is ready"
+  },
+  "panel_friend": {
+    "message": "friend"
+  },
+  "panel_idPrefix": {
+    "message": "ID: $1"
+  },
+  "panel_credits": {
+    "message": "Credits: $1"
+  },
+  "panel_miaoben": {
+    "message": "📖 Miaoben"
+  },
+  "panel_tabIdiom": {
+    "message": "Idioms"
+  },
+  "panel_tabQuote": {
+    "message": "Quotes"
+  },
+  "panel_tabXiehouyu": {
+    "message": "Xiehouyu"
+  },
+  "panel_tabExpression": {
+    "message": "Highlights"
+  },
+  "panel_quotaNotice": {
+    "message": "$1 expression analyses left today. Get Miaoben for unlimited use"
+  },
+  "panel_vocabAria": {
+    "message": "Reading vocabulary stats for this page"
+  },
+  "panel_vocabKicker": {
+    "message": "Reading overview"
+  },
+  "panel_vocabChars": {
+    "message": "Characters"
+  },
+  "panel_vocabUnique": {
+    "message": "Unique chars"
+  },
+  "panel_vocabWords": {
+    "message": "Words"
+  },
+  "panel_readingLevel": {
+    "message": "Reading level"
+  },
+  "panel_levelHint": {
+    "message": "Estimated for average Chinese readers"
+  },
+  "panel_easyChars": {
+    "message": "Easy chars"
+  },
+  "panel_maybeNewChars": {
+    "message": "Possibly new"
+  },
+  "panel_trackAria": {
+    "message": "Easy $1%, possibly new $2%"
+  },
+  "panel_emptyIdioms": {
+    "message": "No idioms yet"
+  },
+  "panel_emptyQuotes": {
+    "message": "No quotes yet"
+  },
+  "panel_emptyXiehouyu": {
+    "message": "No xiehouyu yet"
+  },
+  "panel_share": {
+    "message": "📤 Share this page's findings"
+  },
+  "panel_generating": {
+    "message": "Generating…"
+  },
+  "panel_voteUp": {
+    "message": "Like"
+  },
+  "credits_label": {
+    "message": "Credits"
+  },
+  "share_success": {
+    "message": "📤 Shared!"
+  },
+  "share_qrAlt": {
+    "message": "Scan to share"
+  },
+  "share_hint": {
+    "message": "Scan the QR code to share"
+  },
+  "share_copied": {
+    "message": "Copied"
+  },
+  "share_copyLink": {
+    "message": "Copy link"
+  },
+  "share_open": {
+    "message": "Open shared page"
+  },
+  "activation_cta": {
+    "message": "📱 Activate via WeChat · +100 credits"
+  },
+  "activation_title": {
+    "message": "Activate with WeChat"
+  },
+  "activation_qrAlt": {
+    "message": "WeChat activation QR"
+  },
+  "activation_waitScan": {
+    "message": "Scan with WeChat"
+  },
+  "activation_scanned": {
+    "message": "Scanned! Activating…"
+  },
+  "activation_binding": {
+    "message": "Linking account…"
+  },
+  "activation_success": {
+    "message": "🎉 Activated! +100 credits"
+  },
+  "activation_loadingQr": {
+    "message": "Loading QR code…"
+  },
+  "activation_failed": {
+    "message": "Activation failed"
+  },
+  "popupAct_title": {
+    "message": "Activate account"
+  },
+  "popupAct_wechat": {
+    "message": "WeChat"
+  },
+  "popupAct_email": {
+    "message": "Email"
+  },
+  "popupAct_activated": {
+    "message": "Activated"
+  },
+  "popupAct_qrFail": {
+    "message": "Failed to load QR code"
+  },
+  "popupAct_waitScan": {
+    "message": "Scan with WeChat"
+  },
+  "popupAct_scanned": {
+    "message": "Scanned! Signing in…"
+  },
+  "popupAct_activating": {
+    "message": "Activating…"
+  },
+  "popupAct_success": {
+    "message": "🎉 Activated $1"
+  },
+  "popupAct_emailPlaceholder": {
+    "message": "Email address"
+  },
+  "popupAct_codePlaceholder": {
+    "message": "Verification code"
+  },
+  "popupAct_verify": {
+    "message": "Verify"
+  },
+  "popupAct_sendCode": {
+    "message": "Send code"
+  },
+  "popupAct_codeSent": {
+    "message": "Code sent. Check your email"
+  },
+  "popupAct_sendFailed": {
+    "message": "Failed to send"
+  },
+  "popupAct_verifyFailed": {
+    "message": "Verification failed"
+  },
+  "popupAct_pollFailed": {
+    "message": "Failed to check scan status"
+  },
+  "popupAct_qrGetFailed": {
+    "message": "Failed to get QR code"
+  },
+  "err_typo": {
+    "message": "Typo"
+  },
+  "err_grammar": {
+    "message": "Grammar"
+  },
+  "err_punctuation": {
+    "message": "Punctuation"
+  },
+  "err_sensitive": {
+    "message": "Wording"
+  },
+  "err_redundant": {
+    "message": "Redundant"
+  },
+  "err_collocation": {
+    "message": "Collocation"
+  },
+  "fb_correct": {
+    "message": "Correct +2 credits"
+  },
+  "fb_incorrect": {
+    "message": "Wrong +5 credits"
+  },
+  "popup_loading": {
+    "message": "Loading…"
+  },
+  "popup_tagline": {
+    "message": "Chinese reading companion"
+  },
+  "popup_checking": {
+    "message": "Checking…"
+  },
+  "popup_checkPage": {
+    "message": "Check this page"
+  },
+  "popup_clearMarks": {
+    "message": "Clear marks"
+  },
+  "popup_enableCheck": {
+    "message": "Enable checking"
+  },
+  "popup_autoCheck": {
+    "message": "Auto check"
+  },
+  "popup_checkOnBlur": {
+    "message": "Check on blur"
+  },
+  "popup_shortcut": {
+    "message": "Shortcut: Ctrl+Shift+E"
+  },
+  "marker_summary": {
+    "message": "Found $1 issues"
+  },
+  "marker_more": {
+    "message": "$1 more issues"
+  },
+  "marker_noService": {
+    "message": "Miaob can't reach the check service: $1"
+  },
+  "marker_suggestion": {
+    "message": "Suggestion: $1"
+  },
+  "marker_fix": {
+    "message": "Fix"
+  },
+  "bg_cardTitle": {
+    "message": "Miaob Check"
+  },
+  "bg_checkFailed": {
+    "message": "Check failed: $1"
+  },
+  "bg_noFindings": {
+    "message": "No idioms, quotes, or xiehouyu found"
+  },
+  "bg_foundCount": {
+    "message": "Found $1 idioms · $2 quotes/xiehouyu"
+  },
+  "bg_idiom": {
+    "message": "Idiom"
+  },
+  "bg_quote": {
+    "message": "Quote"
+  },
+  "bg_xiehouyu": {
+    "message": "Xiehouyu"
+  },
+  "bg_contextMenuCheck": {
+    "message": "Check selected text with Miaob"
+  },
+  "bg_contextMenuSettings": {
+    "message": "Settings"
+  },
+  "bg_httpError": {
+    "message": "Check failed (HTTP $1)"
+  },
+  "bg_timeout": {
+    "message": "Check timed out (LLM verification over 120s)"
+  },
+  "bg_noTab": {
+    "message": "No active tab found"
+  },
+  "ct_firstDiscovery": {
+    "message": "First discovery"
+  },
+  "ct_nthDiscovery": {
+    "message": "Discovery #$1"
+  },
+  "ct_points": {
+    "message": "+$1 pts"
+  },
+  "ct_tooltipQuote": {
+    "message": "Quote"
+  },
+  "ct_tooltipXiehouyu": {
+    "message": "Xiehouyu"
+  },
+  "ct_tooltipMore": {
+    "message": "Click for more"
+  },
+  "ct_tooltipLink": {
+    "message": "More → $1"
+  },
+  "ct_cardLoading": {
+    "message": "Loading…"
+  },
+  "ct_cardLoadFail": {
+    "message": "Failed to load. Please retry"
+  },
+  "ct_cardClose": {
+    "message": "Close"
+  },
+  "ct_cardZdic": {
+    "message": "🔗 ZDic details"
+  },
+  "ct_cardAdd": {
+    "message": "📋 Add to Miaoben"
+  },
+  "ct_cardAdded": {
+    "message": "✓ Added to Miaoben"
+  },
+  "ct_cardAddFail": {
+    "message": "Failed to add. Please retry"
+  },
+  "ct_cardMeaning": {
+    "message": "Meaning"
+  },
+  "ct_cardDerivation": {
+    "message": "Origin"
+  },
+  "ct_cardSynonym": {
+    "message": "Synonyms"
+  },
+  "ct_cardAntonym": {
+    "message": "Antonyms"
+  },
+  "ct_guideTitle": {
+    "message": "📖 Miaoben"
+  },
+  "ct_guideDesc": {
+    "message": "Auto-save the idioms and quotes you meet while reading"
+  },
+  "ct_guideLoadingQr": {
+    "message": "Loading QR code…"
+  },
+  "ct_guideHint": {
+    "message": "Scan with WeChat to activate: +100 credits, unlimited saves"
+  },
+  "ct_guideLoadFail": {
+    "message": "Failed to load. Refresh and retry"
+  },
+  "ct_guideQrFail": {
+    "message": "Failed to get QR code"
+  },
+  "ct_guideQrAlt": {
+    "message": "WeChat QR"
+  },
+  "ct_guideScanned": {
+    "message": "✓ Scanned! Activating…"
+  },
+  "ct_guideSuccess": {
+    "message": "🎉 Activated! +100 credits"
+  },
+  "ct_guideFail": {
+    "message": "Activation failed. Please retry"
+  },
+  "ct_serverUnavailable": {
+    "message": "Miaob server is temporarily unavailable. Please try again later"
+  },
+  "ct_titleSource": {
+    "message": "Source: $1"
+  },
+  "ct_exprGolden": {
+    "message": "Golden sentence"
+  },
+  "ct_exprParallelism": {
+    "message": "Parallelism"
+  },
+  "ct_exprContrast": {
+    "message": "Contrast"
+  },
+  "ct_exprRhetorical": {
+    "message": "Rhetorical question"
+  },
+  "ct_exprNumeric": {
+    "message": "Numeric impact"
+  },
+  "ct_exprMetaphor": {
+    "message": "Metaphor"
+  },
+  "ct_exprCitation": {
+    "message": "Citation"
+  },
+  "ct_exprHighlight": {
+    "message": "Expression highlight"
   }
 }

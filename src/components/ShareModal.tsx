@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
+import { t } from '../lib/i18n'
 
 export function ShareModal({ url, onClose }: { url: string; onClose: () => void }) {
   const [copied, setCopied] = useState(false)
@@ -17,20 +18,20 @@ export function ShareModal({ url, onClose }: { url: string; onClose: () => void 
     <div className="share-overlay">
       <div className="share-modal">
         <button className="share-close" onClick={onClose}>✕</button>
-        <h3>📤 分享成功！</h3>
+        <h3>{t('share_success')}</h3>
 
         {qrDataUrl && (
           <div className="share-qr">
-            <img src={qrDataUrl} alt="扫码分享" width={180} height={180} />
+            <img src={qrDataUrl} alt={t('share_qrAlt')} width={180} height={180} />
           </div>
         )}
 
-        <div className="share-hint">扫描二维码分享</div>
+        <div className="share-hint">{t('share_hint')}</div>
 
         <input readOnly value={url} onFocus={e => e.currentTarget.select()} />
         <div className="share-actions">
-          <button onClick={copy}>📋 {copied ? '已复制' : '复制链接'}</button>
-          <button onClick={() => window.open(url, '_blank')}>打开分享页</button>
+          <button onClick={copy}>📋 {copied ? t('share_copied') : t('share_copyLink')}</button>
+          <button onClick={() => window.open(url, '_blank')}>{t('share_open')}</button>
         </div>
       </div>
     </div>

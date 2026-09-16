@@ -24,6 +24,9 @@ Click "Share discoveries" to generate a shareable link. Friends don't need the e
 **Save what you love**
 Collect your favorite idioms and quotes in your Miaoben notebook, and revisit them anytime.
 
+**Bilingual interface**
+The UI automatically switches between Chinese and English to match your browser language — great for international readers.
+
 ## Perfect for
 
 - Reading news, novels, and social media articles
@@ -43,6 +46,13 @@ When checking is enabled, the page text is sent to the Miaob server for real-tim
 For details: https://miaob.net/privacy
 
 ## Changelog
+
+**v0.12.0**
+
+- Fully bilingual UI — panel, popup, annotations, and idiom cards auto-switch between Chinese and English
+- Email verification activation — activate with WeChat QR or email, whichever you prefer
+- New per-page reading stats: character count, unique characters, words, and reading level
+- Offline idiom, quote, and xiehouyu recognition works even when the server is unavailable
 
 **v0.9.0**
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import './index.css'
 import { PopupActivation } from '../components/PopupActivation'
 import { userService } from '../services/user.service'
+import { t } from '../lib/i18n'
 
 // 获取扩展内资源的绝对 URL（popup 页面相对路径解析不同）
 const assetUrl = (p: string) => chrome.runtime.getURL(p)
@@ -96,7 +97,7 @@ function App() {
     return (
       <div className="popup-container">
         <div className="flex items-center justify-center h-48">
-          <div className="animate-pulse text-gray-400">加载中...</div>
+          <div className="animate-pulse text-gray-400">{t('popup_loading')}</div>
         </div>
       </div>
     )
@@ -110,7 +111,7 @@ function App() {
           <img src={assetUrl('src/assets/icons/icon128.png')} alt="妙笔" className="w-10 h-10 rounded-full" />
           <div>
             <h1 className="text-lg font-bold text-gray-900">妙笔</h1>
-            <p className="text-xs text-gray-500">中文阅读伴侣</p>
+            <p className="text-xs text-gray-500">{t('popup_tagline')}</p>
           </div>
         </div>
         {userId && (
@@ -132,31 +133,31 @@ function App() {
           {checking ? (
             <>
               <span className="spinner"></span>
-              检查中...
+              {t('popup_checking')}
             </>
           ) : (
-            <>检查页面</>
+            <>{t('popup_checkPage')}</>
           )}
         </button>
         <button onClick={handleClearMarks} className="btn-secondary">
-          清除标注
+          {t('popup_clearMarks')}
         </button>
       </div>
 
       {/* Settings */}
       <div className="popup-settings">
         <Toggle
-          label="启用检查"
+          label={t('popup_enableCheck')}
           checked={config.enabled}
           onChange={(v) => saveConfig({ ...config, enabled: v })}
         />
         <Toggle
-          label="自动检查"
+          label={t('popup_autoCheck')}
           checked={config.autoCheck}
           onChange={(v) => saveConfig({ ...config, autoCheck: v })}
         />
         <Toggle
-          label="失焦时检查"
+          label={t('popup_checkOnBlur')}
           checked={config.checkOnBlur}
           onChange={(v) => saveConfig({ ...config, checkOnBlur: v })}
         />
@@ -165,7 +166,7 @@ function App() {
 
       {/* Footer */}
       <div className="popup-footer">
-        <span>快捷键 Ctrl+Shift+E</span>
+        <span>{t('popup_shortcut')}</span>
       </div>
     </div>
   )

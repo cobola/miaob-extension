@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { userService } from '../services/user.service'
+import { t } from '../lib/i18n'
 
 interface ActivationPromptProps {
   onActivated: () => void
@@ -51,13 +52,13 @@ export function ActivationPrompt({ onActivated }: ActivationPromptProps) {
           if (failCount >= MAX_FAIL) {
             clearInterval(timer)
             setPollTimer(null)
-            setError(err instanceof Error ? err.message : '激活失败')
+            setError(err instanceof Error ? err.message : t('activation_failed'))
           }
         }
       }, 1500)
       setPollTimer(timer)
     } catch (err) {
-      setError(err instanceof Error ? err.message : '激活失败')
+      setError(err instanceof Error ? err.message : t('activation_failed'))
       setStatus('idle')
     }
   }
@@ -72,7 +73,7 @@ export function ActivationPrompt({ onActivated }: ActivationPromptProps) {
     return (
       <div className="activation-prompt collapsed">
         <button className="activation-btn" onClick={startActivation}>
-          📱 微信扫码激活 送 100 积分
+          {t('activation_cta')}
         </button>
       </div>
     )
@@ -81,23 +82,23 @@ export function ActivationPrompt({ onActivated }: ActivationPromptProps) {
   return (
     <div className="activation-prompt expanded">
       <div className="activation-header">
-        <h4>微信扫码激活</h4>
+        <h4>{t('activation_title')}</h4>
         <button className="close-btn" onClick={handleClose}>✕</button>
       </div>
 
       <div className="activation-form wechat-qr">
         {qrcodeUrl ? (
           <>
-            <img src={qrcodeUrl} alt="微信扫码激活" className="qrcode-img" />
+            <img src={qrcodeUrl} alt={t('activation_qrAlt')} className="qrcode-img" />
             <p className="hint">
-              {status === 'pending' && '请使用微信扫码'}
-              {status === 'scanned' && '扫码成功，正在激活...'}
-              {status === 'activating' && '正在绑定账号...'}
-              {status === 'success' && '🎉 激活成功，获得 100 积分！'}
+              {status === 'pending' && t('activation_waitScan')}
+              {status === 'scanned' && t('activation_scanned')}
+              {status === 'activating' && t('activation_binding')}
+              {status === 'success' && t('activation_success')}
             </p>
           </>
         ) : (
-          <p className="hint">正在加载二维码...</p>
+          <p className="hint">{t('activation_loadingQr')}</p>
         )}
       </div>
 

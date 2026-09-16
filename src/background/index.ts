@@ -1,5 +1,6 @@
 import { type UserConfig } from '../shared/types'
 import { getFingerprint } from '../lib/fingerprint'
+import { t } from '../lib/i18n'
 
 // Background Service Worker - activeTab 模式
 console.log('妙笔 Background Service Worker 已启动')
@@ -11,13 +12,13 @@ chrome.runtime.onInstalled.addListener(() => {
   // 页面右键菜单：检查选中文字
   chrome.contextMenus.create({
     id: CHECK_SELECTION_ID,
-    title: '妙笔检查这段文字',
+    title: t('bg_contextMenuCheck'),
     contexts: ['selection'],
   })
   // 扩展图标右键菜单：打开设置
   chrome.contextMenus.create({
     id: OPTIONS_ID,
-    title: '设置',
+    title: t('bg_contextMenuSettings'),
     contexts: ['action'],
   })
 })
@@ -90,14 +91,14 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       chrome.scripting.executeScript({
         target: { tabId: tab.id! },
         func: showSelectionCard,
-        args: [data],
+        args: [{ ...data, l10n: buildCardL10n() }],
       }).catch(() => {})
     })
     .catch((error) => {
       chrome.scripting.executeScript({
         target: { tabId: tab.id! },
         func: showSelectionCard,
-        args: [{ text, errors: [], idioms: [], phrases: [], error: error.message }],
+        args: [{ text, errors: [], idioms: [], phrases: [], error: error.message, l10n: buildCardL10n() }],
       }).catch(() => {})
     })
 })
@@ -276,6 +277,22 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 })
 
 /**
+ * 构建注入页面的结果卡片文案。
+ * showSelectionCard 运行在页面主世界（无 chrome.i18n），必须在 background 预解析后传入。
+ */
+function buildCardL10n(): Record<string, string> {
+  return {
+    title: t('bg_cardTitle'),
+    checkFailed: t('bg_checkFailed'),
+    noFindings: t('bg_noFindings'),
+    found: t('bg_foundCount'),
+    idiom: t('bg_idiom'),
+    quote: t('bg_quote'),
+    xiehouyu: t('bg_xiehouyu'),
+  }
+}
+
+/**
  * 在页面中创建浮动结果卡片（注入执行的函数）
  */
 function showSelectionCard(data: {
@@ -284,15 +301,18 @@ function showSelectionCard(data: {
   idioms: Array<{ idiom: string; derivation?: string; explanation?: string }>
   phrases: Array<{ text: string; type: string; answer?: string; from?: string }>
   error?: string
+  l10n?: Record<string, string>
 }) {
   document.querySelectorAll('#miaob-selection-card').forEach(el => el.remove())
+
+  const L = data.l10n || {}
 
   const card = document.createElement('div')
   card.id = 'miaob-selection-card'
   card.style.cssText = 'position:fixed;top:16px;right:16px;z-index:2147483647;max-width:380px;max-height:70vh;overflow:auto;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.15);padding:16px;font-size:14px;line-height:1.6;font-family:-apple-system,sans-serif;'
 
   const title = document.createElement('div')
-  title.textContent = '妙笔检查'
+  title.textContent = L.title || '妙笔检查'
   title.style.cssText = 'font-weight:600;margin-bottom:8px;color:#111'
   card.appendChild(title)
 
@@ -306,7 +326,7 @@ function showSelectionCard(data: {
 
   if (data.error) {
     const err = document.createElement('div')
-    err.textContent = '检查失败：' + data.error
+    err.textContent = (L.checkFailed || '检查失败：$1').replace('$1', data.error)
     err.style.cssText = 'color:#dc2626'
     card.appendChild(err)
   } else {
@@ -316,12 +336,12 @@ function showSelectionCard(data: {
 
     if (total === 0) {
       const ok = document.createElement('div')
-    ok.textContent = '未发现成语、名句或歇后语'
+    ok.textContent = L.noFindings || '未发现成语、名句或歇后语'
       ok.style.cssText = 'color:#16a34a'
       card.appendChild(ok)
     } else {
       const count = document.createElement('div')
-    count.textContent = `发现 ${idioms.length} 个成语 · ${phrases.length} 个名句/歇后语`
+    count.textContent = (L.found || '发现 $1 个成语 · $2 个名句/歇后语').replace('$1', String(idioms.length)).replace('$2', String(phrases.length))
       count.style.cssText = 'color:#4b5563;margin-bottom:10px;font-size:13px'
       card.appendChild(count)
 
@@ -333,10 +353,10 @@ function showSelectionCard(data: {
       }
 
       idioms.forEach(i => {
-        addItem('成语', '#8C3D2B', `${esc(i.idiom)}${i.derivation ? ' — ' + esc(i.derivation.slice(0, 40)) : ''}`)
+        addItem(L.idiom || '成语', '#8C3D2B', `${esc(i.idiom)}${i.derivation ? ' — ' + esc(i.derivation.slice(0, 40)) : ''}`)
       })
       phrases.forEach(p => {
-        const tag = p.type === 'quote' ? '名句' : '歇后语'
+        const tag = p.type === 'quote' ? (L.quote || '名句') : (L.xiehouyu || '歇后语')
         const color = p.type === 'quote' ? '#10b981' : '#f59e0b'
         const extra = p.type === 'quote' ? (p.from || '') : (p.answer || '')
         addItem(tag, color, `${esc(p.text)}${extra ? ' — ' + esc(extra) : ''}`)
@@ -663,13 +683,13 @@ async function handleTextCheck(data: { text: string }) {
         const errBody = await response.json()
         detail = errBody?.message || JSON.stringify(errBody)
       } catch { /* ignore */ }
-      throw new Error(`检查失败 (HTTP ${response.status})${detail ? ': ' + detail : ''}`)
+      throw new Error(t('bg_httpError', response.status) + (detail ? ': ' + detail : ''))
     }
 
     return await response.json()
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error('检查超时（LLM 校验超过 120 秒）')
+      throw new Error(t('bg_timeout'))
     }
     throw error
   } finally {
@@ -680,7 +700,7 @@ async function handleTextCheck(data: { text: string }) {
 async function checkCurrentPage() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
   if (!tab?.id) {
-    throw new Error('未找到当前标签页')
+    throw new Error(t('bg_noTab'))
   }
   await chrome.tabs.sendMessage(tab.id, { type: 'RUN_CHECK' })
 }
