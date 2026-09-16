@@ -23,7 +23,7 @@ export class UserService {
     return sendMessage({ type: 'CREATE_ANONYMOUS', fingerprint })
   }
 
-  async getUserProfile(userId: string): Promise<{ userId: string; credits: number; isActivated: boolean; consecutiveDays: number; inviteCode: string }> {
+  async getUserProfile(userId: string): Promise<{ userId: string; name?: string | null; credits: number; isActivated: boolean; consecutiveDays: number; inviteCode: string }> {
     return sendMessage({ type: 'GET_PROFILE', userId })
   }
 
@@ -51,6 +51,8 @@ export class UserService {
   async getWechatStatus(sessionId: string): Promise<{ ok: boolean; status: string; scanned?: boolean }> {
     return sendMessage({ type: 'WECHAT_STATUS', sessionId })
   }
+  async sendEmailCode(email: string): Promise<{ ok: boolean; message: string }> { return sendMessage({ type: 'EMAIL_SEND_CODE', email }) }
+  async verifyEmail(email: string, code: string): Promise<{ ok: boolean; userId: string; credits: number; isActivated: boolean; extensionToken?: string }> { return sendMessage({ type: 'EMAIL_VERIFY', email, code }) }
 
 }
 

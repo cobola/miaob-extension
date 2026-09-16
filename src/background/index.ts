@@ -173,6 +173,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       .catch(error => sendResponse({ success: false, error: error.message }))
     return true
   }
+  if (message.type === 'EMAIL_SEND_CODE') {
+    handleEmailSendCode(message.email).then(data => sendResponse({ success: true, data })).catch(error => sendResponse({ success: false, error: error.message })); return true
+  }
+  if (message.type === 'EMAIL_VERIFY') {
+    handleEmailVerify(message.email, message.code).then(data => sendResponse({ success: true, data })).catch(error => sendResponse({ success: false, error: error.message })); return true
+  }
 
   if (message.type === 'FETCH_IDIOM_DETAIL') {
     handleFetchIdiomDetail(message.idiom)
@@ -429,6 +435,8 @@ async function handleWechatStatus(sessionId: string) {
   const apiUrl = await getApiUrlCached()
   return fetchProxy(`${apiUrl}/api/user/activation/wechat-status?sessionId=${encodeURIComponent(sessionId)}`)
 }
+async function handleEmailSendCode(email: string) { const apiUrl = await getApiUrlCached(); return fetchProxy(`${apiUrl}/api/user/email/send-code`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) }) }
+async function handleEmailVerify(email: string, code: string) { const apiUrl = await getApiUrlCached(); return fetchProxy(`${apiUrl}/api/user/email/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, code }) }) }
 
 async function handleFetchIdiomDetail(idiom: unknown) {
   if (typeof idiom !== 'string' || Array.from(idiom).length === 0 || Array.from(idiom).length > 15) {

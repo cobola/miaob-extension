@@ -1,4 +1,5 @@
 import type { TextError } from '../shared/types'
+import { findLocalCulture } from './local-culture-checker'
 
 export interface IdiomMatch {
   idiom: string
@@ -39,50 +40,29 @@ export class TextChecker {
     }
   }
 
-  /**
-   * 检查文本，返回完整结果（错误 + 成语 + 名句/歇后语）
-   * 全部走服务端 API（规则引擎 + LLM 裁判 + 文化库匹配）
-   * 服务端不可用时返回 null（由调用方提示用户）
-   */
+  /** 本地完成确定性匹配；表达高光继续由服务端分析，失败时保留本地结果。 */
   async check(text: string): Promise<CheckResult | null> {
-    if (!this.isContextValid()) return null
-    if (!text || text.trim().length === 0) return null  // 跳过空文本
+    if (!text || text.trim().length === 0) return null
     if (this.cache.has(text)) return this.cache.get(text)!
-
-    return new Promise((resolve) => {
+    const culture = findLocalCulture(text)
+    const result: CheckResult = { errors: [], ...culture, expressions: [] }
+    if (this.isContextValid()) {
       try {
-        chrome.runtime.sendMessage(
-          { type: 'CHECK_TEXT', data: { text } },
-          (response) => {
-            if (!this.isContextValid()) { resolve(null); return }
-            if (chrome.runtime.lastError) {
-              console.warn('[TextChecker] 服务端不可用:', chrome.runtime.lastError.message)
-              resolve(null)
-              return
-            }
-            if (response?.success) {
-              const data = response.data || {}
-              const result: CheckResult = {
-                // 错误纠错功能已下线；阅读报告只保留正向发现。
-                errors: [],
-                idioms: data.idioms || [],
-                phrases: data.phrases || [],
-                expressions: data.expressions || [],
-                quota: data.quota || undefined,
-              }
-              this.cache.set(text, result)
-              resolve(result)
-            } else {
-              console.warn('[TextChecker] 检查失败:', response?.error)
-              resolve(null)
-            }
-          }
-        )
-      } catch (error) {
-        console.warn('[TextChecker] 请求异常:', error)
-        resolve(null)
+        const remote = await new Promise<any>((resolve, reject) => {
+          chrome.runtime.sendMessage({ type: 'CHECK_TEXT', data: { text } }, response => {
+            if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message))
+            else if (response?.success) resolve(response.data || {})
+            else reject(new Error(response?.error || 'expression analysis failed'))
+          })
+        })
+        result.expressions = remote.expressions || []
+        result.quota = remote.quota || undefined
+      } catch {
+        // 本地文化匹配不依赖服务端；表达高光在服务不可用时暂不显示。
       }
-    })
+    }
+    this.cache.set(text, result)
+    return result
   }
 
   clearCache() {

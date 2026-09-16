@@ -3,6 +3,8 @@ import { ActivationPrompt } from './ActivationPrompt'
 import '../styles/report-panel.css'
 import { ShareModal } from './ShareModal'
 import { expressionVoteService } from '../services/expression-vote.service'
+import { userService } from '../services/user.service'
+import type { VocabularyStats } from '../content/vocabulary-stats'
 
 // 同步简单 hash（用于本地状态追踪，避免异步阻塞按钮）
 function simpleHash(str: string): string {
@@ -18,22 +20,23 @@ interface QuoteEntry { text: string; from?: string }
 interface XiehouyuEntry { text: string; answer?: string }
 interface ExpressionEntry { type: string; text: string; score?: number }
 interface QuotaStatus { remaining: number; isPaid: boolean; used: number; limit: number }
-
 interface ReportPanelProps {
   idioms?: IdiomEntry[]
   quotes?: QuoteEntry[]
   xiehouyu?: XiehouyuEntry[]
   expressions?: ExpressionEntry[]
   quota?: QuotaStatus
+  vocabularyStats?: VocabularyStats
   onItemClick?: (text: string, type: 'idiom' | 'quote' | 'xiehouyu' | 'expression', start?: number, end?: number) => void
 }
 
 const expressionLabels: Record<string, string> = { golden_sentence: '金句', parallelism: '排比', contrast: '对比', rhetorical_question: '设问', numeric_impact: '数字', metaphor: '比喻', citation: '引用' }
 
-export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressions = [], quota, onItemClick }: ReportPanelProps) {
+export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressions = [], quota, vocabularyStats, onItemClick }: ReportPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [credits, setCredits] = useState(0)
   const [userId, setUserId] = useState('')
+  const [userName, setUserName] = useState('')
   const [isActivated, setIsActivated] = useState(false)
   const [activeTab, setActiveTab] = useState<'idiom' | 'quote' | 'xiehouyu' | 'expression'>('idiom')
   const [shareUrl, setShareUrl] = useState<string | null>(null)
@@ -61,10 +64,15 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
 
   // 初始加载用户数据（只执行一次）
   useEffect(() => {
-    chrome.storage.local.get(['userId', 'credits', 'isActivated'], (result) => {
+    chrome.storage.local.get(['userId', 'credits', 'isActivated', 'userName'], (result) => {
       if (result.userId) setUserId(result.userId as string)
+      if (result.userName) setUserName(result.userName as string)
       if (result.credits !== undefined) setCredits(result.credits as number)
       if (result.isActivated !== undefined) setIsActivated(result.isActivated as boolean)
+      if (result.userId) userService.getUserProfile(result.userId as string).then(profile => {
+        if (profile.name) { setUserName(profile.name); chrome.storage.local.set({ userName: profile.name }) }
+        setCredits(profile.credits); chrome.storage.local.set({ credits: profile.credits })
+      }).catch(() => {})
     })
 
     const handleStorageChange = (changes: { credits?: chrome.storage.StorageChange }, areaName: string) => {
@@ -191,9 +199,8 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
       <div className={`miaob-panel ${isOpen ? 'open' : ''}`}>
         <div className="panel-header">
           <div className="panel-heading">
-            <h3>妙笔报告</h3>
-            <span className="header-credits">积分余额：{credits}</span>
-            {userId && <span className="user-id" title={userId}>ID: {userId.slice(0, 8)}</span>}
+            <h3>欢迎，{userName || '朋友'}，使用妙笔</h3>
+            <div className="panel-user-meta">{userId && <span className="user-id" title={userId}>ID: {userId.slice(0, 8)}</span>}<span className="header-credits">积分：{credits}</span></div>
           </div>
           <div className="header-actions">
             <button className="miaoben-btn" onClick={handleOpenMiaoben}>📖 妙笔本</button>
@@ -216,6 +223,19 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
 
         <div className="panel-content">
           {quota && !quota.isPaid && quota.remaining <= 3 && <div className="quota-notice">今日表达分析剩余 {quota.remaining} 次，开通妙笔本后可无限使用</div>}
+          {vocabularyStats && vocabularyStats.totalChineseChars > 0 && (
+            <div className="vocabulary-stats" aria-label="本页阅读词汇统计">
+              <div className="vocabulary-heading"><span className="vocabulary-kicker">阅读概览</span></div>
+              <div className="vocabulary-metrics">
+                <div><strong>{vocabularyStats.totalChineseChars.toLocaleString()}</strong><span>字数</span></div>
+                <div><strong>{vocabularyStats.uniqueChineseChars.toLocaleString()}</strong><span>去重字</span></div>
+                <div><strong>{vocabularyStats.uniqueWords.toLocaleString()}</strong><span>词语</span></div>
+              </div>
+              <div className="vocabulary-readability-label"><span>阅读难度</span><b>{vocabularyStats.readability}</b><small>普通中文读者估计</small></div>
+              <div className="vocabulary-readability"><div><span className="easy-dot" />容易字 <b>{vocabularyStats.easyChars}</b><small>{vocabularyStats.easyPercent}%</small></div><div><span className="difficult-dot" />可能生字 <b>{vocabularyStats.difficultChars}</b><small>{100 - vocabularyStats.easyPercent}%</small></div></div>
+              <div className="vocabulary-track vocabulary-readability-track" aria-label={`容易字 ${vocabularyStats.easyPercent}%，可能生字 ${100 - vocabularyStats.easyPercent}%`}><i style={{ width: `${vocabularyStats.easyPercent}%` }} /><b style={{ width: `${100 - vocabularyStats.easyPercent}%` }} /></div>
+            </div>
+          )}
           {activeTab === 'idiom' && (
             idioms.length === 0 ? (
               <div className="empty-state"><p>暂无成语</p></div>
@@ -223,11 +243,12 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
               <div className="report-list">
                 {idioms.map((i, idx) => (
                   <div key={idx} className="report-item idiom-item" onClick={() => onItemClick?.(i.idiom, 'idiom')}>
-                    <span className="report-tag tag-idiom">成语</span>
-                    <div className="report-content">
-                      <span className="report-text">{i.idiom}</span>
-                      {i.derivation && <span className="report-note"> — {i.derivation.slice(0, 30)}</span>}
-                    </div>
+                      <span className="report-tag tag-idiom">成语</span>
+                      <div className="report-content">
+                        <span className="report-text">{i.idiom}</span>
+                        {i.explanation && <span className="report-note">{i.explanation.slice(0, 42)}</span>}
+                        {!i.explanation && i.derivation && <span className="report-note">{i.derivation.slice(0, 30)}</span>}
+                      </div>
                   </div>
                 ))}
               </div>

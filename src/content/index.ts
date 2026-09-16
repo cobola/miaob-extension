@@ -12,6 +12,8 @@ import './styles.css'
 import { createRoot } from 'react-dom/client'
 import { ReportPanel } from '../components/ReportPanel'
 import { createElement } from 'react'
+import { calculateVocabularyStats, VocabularyStats } from './vocabulary-stats'
+import idiomDetails from '../data-idiom-details.json'
 
 console.log('妙笔 Content Script 已加载')
 
@@ -50,6 +52,7 @@ class MiaobContent {
     xiehouyu: Array<{ text: string; answer?: string }>
     expressions: Array<{ type: string; text: string; score?: number }>
     quota?: { remaining: number; isPaid: boolean; used: number; limit: number }
+    vocabularyStats?: VocabularyStats
   } = { errors: [], idioms: [], quotes: [], xiehouyu: [], expressions: [] }
   private expressionFindings: Array<{ type: string; text: string; score?: number }> = []
   private panelRoot: ReturnType<typeof createRoot> | null = null
@@ -193,6 +196,7 @@ class MiaobContent {
       quotes: [...quoteSet.values()],
       xiehouyu: [...xiehouyuSet.values()],
       expressions: this.expressionFindings,
+      vocabularyStats: this.reportData.vocabularyStats,
     }
 
     this.panelRoot.render(
@@ -201,7 +205,8 @@ class MiaobContent {
         quotes: this.reportData.quotes,
         xiehouyu: this.reportData.xiehouyu,
       expressions: this.reportData.expressions,
-      quota: this.reportData.quota,
+        quota: this.reportData.quota,
+        vocabularyStats: this.reportData.vocabularyStats,
         onItemClick: this.scrollToAnnotation.bind(this),
       })
     )
@@ -494,6 +499,7 @@ class MiaobContent {
 
     // Clear errors list and update panel
     this.allErrors = []
+    this.reportData.vocabularyStats = undefined
     this.renderPanel()
 
     console.log('[miaob] 已清除所有标注')
@@ -521,6 +527,8 @@ class MiaobContent {
     try {
       const blocks = this.collectStaticTextBlocks(document.body)
       console.log(`[miaob] 收集到 ${blocks.length} 个文本块`)
+
+      this.reportData.vocabularyStats = calculateVocabularyStats(this.getPageTextForStats())
 
       // 过滤已检查过的块（防重复标注）
       const unChecked = blocks.filter(b => !this.staticCheckedElements.has(b.root))
@@ -879,7 +887,8 @@ class MiaobContent {
     try {
       const idiom = target.textContent || ''
       const cached = this.idiomDetailCache.get(idiom)
-      const data = cached && cached.expiresAt > Date.now() ? cached.data : await this.fetchIdiomDetail(idiom)
+      const local = this.findLocalIdiomDetail(idiom)
+      const data = local || (cached && cached.expiresAt > Date.now() ? cached.data : await this.fetchIdiomDetail(idiom))
       if (!cached || cached.expiresAt <= Date.now()) this.idiomDetailCache.set(idiom, { data, expiresAt: Date.now() + 3600000 })
       if (requestId !== this.idiomRequestId || this.idiomCard !== card) return
       this.renderIdiomCard(card, data)
@@ -889,6 +898,12 @@ class MiaobContent {
         loading.textContent = '加载失败，请稍后重试'
       }
     }
+  }
+
+  private findLocalIdiomDetail(idiom: string): { idiom: string; pinyin: string; explanation: string } | null {
+    const match = (idiomDetails as Record<string, { pinyin?: string; explanation?: string }>)[idiom]
+    if (!match) return null
+    return { idiom, pinyin: match.pinyin || '', explanation: match.explanation || '' }
   }
 
   private renderIdiomCard(card: HTMLElement, data: any) {
@@ -905,7 +920,7 @@ class MiaobContent {
     const relationBox = document.createElement('div'); relationBox.className = 'miaob-card-relations'
     const addRelations = (label: string, values: unknown[], type: string) => { if (!Array.isArray(values) || !values.length) return; const group = document.createElement('div'); group.className = 'miaob-card-rel-group'; const l = document.createElement('div'); l.className = 'miaob-card-label'; l.textContent = label; const items = document.createElement('div'); items.className = 'miaob-card-rel-items'; values.slice(0, 8).forEach(value => { const b = document.createElement('button'); b.type = 'button'; b.className = 'miaob-card-rel-item'; b.textContent = String(value); b.onclick = () => { const found = this.findAnnotation(String(value), type); if (found) this.scrollToAnnotation(String(value), type); else this.openRelatedIdiom(String(value), card) }; items.appendChild(b) }); group.append(l, items); relationBox.appendChild(group) }
     addRelations('同义', relations.synonyms, 'idiom'); addRelations('反义', relations.antonyms, 'idiom'); if (relationBox.childElementCount) body.appendChild(relationBox); card.appendChild(body)
-    const footer = document.createElement('div'); footer.className = 'miaob-card-footer'; const link = document.createElement('a'); link.className = 'miaob-card-link'; link.textContent = '🔗 汉典详解'; link.href = typeof data.zdicUrl === 'string' ? data.zdicUrl : '#'; link.target = '_blank'; link.rel = 'noopener noreferrer'; footer.appendChild(link)
+    const footer = document.createElement('div'); footer.className = 'miaob-card-footer'; const link = document.createElement('a'); link.className = 'miaob-card-link'; link.textContent = '🔗 汉典详解'; link.href = typeof data.zdicUrl === 'string' && data.zdicUrl ? data.zdicUrl : `https://www.zdic.net/hans/${encodeURIComponent(data.idiom || '')}`; link.target = '_blank'; link.rel = 'noopener noreferrer'; footer.appendChild(link)
     const add = document.createElement('button'); add.type = 'button'; add.className = 'miaob-card-add'; add.textContent = '📋 加入妙笔本'; add.onclick = () => { add.disabled = true; chrome.runtime.sendMessage({ type: 'ADD_MIAOBEN', idiom: data.idiom, sourceUrl: location.href }, (response) => { if (response?.needsActivation) { this.showActivationGuide(card, data.idiom, add); add.disabled = false; add.textContent = '📋 加入妙笔本' } else { add.disabled = false; add.textContent = response?.success ? '✓ 已加入妙笔本' : '加入失败，请重试' } }) }; footer.appendChild(add); card.appendChild(footer)
     card.onclick = (e) => { if (!(e.target as HTMLElement).closest('button,a')) { this.idiomPinned = true; card.classList.add('pinned') } }
   }
@@ -1232,6 +1247,35 @@ class MiaobContent {
         '.miaob-inline-wrapper, .miaob-wrapper, .miaob-tooltip, #miaob-panel-root, input, textarea, [contenteditable="true"]'
       )
     )
+  }
+
+  /**
+   * 收集页面当前可见的全部文本，供本地统计使用。
+   * 这里不复用正文筛选，因为导航、链接、菜单和管理列表也属于用户看到的页面内容。
+   */
+  private getPageTextForStats(): string {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    const texts: string[] = []
+    let current: Node | null = walker.nextNode()
+
+    while (current) {
+      const textNode = current as Text
+      const parent = textNode.parentElement
+      const tagName = parent?.tagName
+      const isPluginNode = Boolean(parent?.closest(
+        '#miaob-panel-root, .miaob-tooltip, .miaob-card, .miaob-error-panel, .miaob-service-error'
+      ))
+      const isVisible = Boolean(parent && parent.getClientRects().length > 0)
+
+      if (parent && isVisible && !isPluginNode && tagName !== 'SCRIPT' && tagName !== 'STYLE' && tagName !== 'NOSCRIPT') {
+        const value = textNode.textContent || ''
+        if (value.trim()) texts.push(value)
+      }
+
+      current = walker.nextNode()
+    }
+
+    return texts.join('')
   }
 
   private async checkNodeTree(node: Node) {

@@ -14,6 +14,10 @@ export function PopupActivation({ credits, isActivated, onActivated }: PopupActi
   const [status, setStatus] = useState<Status>('idle')
   const [qrUrl, setQrUrl] = useState('')
   const [msg, setMsg] = useState('')
+  const [mode, setMode] = useState<'wechat' | 'email'>('wechat')
+  const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
+  const [emailSent, setEmailSent] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
@@ -65,6 +69,9 @@ export function PopupActivation({ credits, isActivated, onActivated }: PopupActi
     setQrUrl('')
   }
 
+  const sendCode = async () => { try { await userService.sendEmailCode(email.trim()); setEmailSent(true); setMsg('验证码已发送，请查收邮件') } catch (e) { setMsg(e instanceof Error ? e.message : '发送失败') } }
+  const verifyCode = async () => { try { const result = await userService.verifyEmail(email.trim(), code.trim()); if (result.ok) { await chrome.storage.local.set({ credits: result.credits, isActivated: true }); setStatus('success'); setMsg('+100 积分'); onActivated(result.credits) } } catch (e) { setMsg(e instanceof Error ? e.message : '验证失败') } }
+
   // 已激活：header 内绿色徽章
   if (isActivated) {
     return (
@@ -89,17 +96,18 @@ export function PopupActivation({ credits, isActivated, onActivated }: PopupActi
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={close}>
       <div className="bg-white rounded-2xl p-5 shadow-xl max-w-xs mx-4" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <span className="text-sm font-semibold text-gray-800">微信扫码激活</span>
+          <span className="text-sm font-semibold text-gray-800">账号激活</span>
           <button onClick={close} className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">✕</button>
         </div>
 
-        {!qrUrl && status === 'starting' && (
+        <div className="flex gap-2 mb-4"><button onClick={() => setMode('wechat')} className="text-xs px-2 py-1 rounded bg-gray-100">微信扫码</button><button onClick={() => setMode('email')} className="text-xs px-2 py-1 rounded bg-gray-100">邮箱验证</button></div>
+        {mode === 'wechat' && !qrUrl && status === 'starting' && (
           <div className="flex items-center justify-center py-8">
             <div className="w-6 h-6 border-2 border-gray-200 border-t-blue-500 rounded-full animate-spin" />
           </div>
         )}
 
-        {qrUrl && (
+        {mode === 'wechat' && qrUrl && (
           <div className="flex flex-col items-center gap-3">
             <img
               src={qrUrl}
@@ -115,6 +123,7 @@ export function PopupActivation({ credits, isActivated, onActivated }: PopupActi
             </p>
           </div>
         )}
+        {mode === 'email' && <div className="space-y-2"><input value={email} onChange={e => setEmail(e.target.value)} placeholder="邮箱地址" className="w-full border rounded px-3 py-2 text-sm" /><div className="flex gap-2"><input value={code} onChange={e => setCode(e.target.value)} placeholder="验证码" className="flex-1 border rounded px-3 py-2 text-sm" />{emailSent ? <button onClick={verifyCode} className="px-3 py-2 bg-blue-600 text-white rounded text-sm">验证</button> : <button onClick={sendCode} className="px-3 py-2 bg-blue-600 text-white rounded text-sm">发送验证码</button>}</div></div>}
 
         {status === 'error' && msg && (
           <div className="mt-2 text-sm text-red-600 text-center bg-red-50 p-2 rounded-lg">{msg}</div>
