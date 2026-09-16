@@ -47,6 +47,10 @@ For details: https://miaob.net/privacy
 
 ## Changelog
 
+**v0.12.1**
+
+- Polished the panel greeting wording
+
 **v0.12.0**
 
 - Fully bilingual UI — panel, popup, annotations, and idiom cards auto-switch between Chinese and English

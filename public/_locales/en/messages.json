@@ -6,7 +6,7 @@
     "message": "Automatically highlights idioms, famous quotes and xiehouyu as you read Chinese web pages. Hover to see origins and meanings. Makes reading more enjoyable and insightful."
   },
   "panel_welcome": {
-    "message": "Welcome, $1! Miaob is ready"
+    "message": "Welcome to Miaob, $1!"
   },
   "panel_friend": {
     "message": "friend"

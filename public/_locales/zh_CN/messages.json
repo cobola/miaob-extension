@@ -6,7 +6,7 @@
     "message": "浏览中文网页时自动发现成语、名句和文章高光，点击查看解释、出处与上下文，还能收藏和分享。"
   },
   "panel_welcome": {
-    "message": "欢迎，$1，使用妙笔"
+    "message": "欢迎使用妙笔，$1！"
   },
   "panel_friend": {
     "message": "朋友"
