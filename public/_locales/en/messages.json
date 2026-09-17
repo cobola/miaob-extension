@@ -140,6 +140,9 @@
   "popupAct_email": {
     "message": "Email"
   },
+  "popupAct_emailHint": {
+    "message": "We'll email you a 6-digit code. Activate to get +100 credits"
+  },
   "popupAct_activated": {
     "message": "Activated"
   },

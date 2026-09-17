@@ -157,9 +157,10 @@
 #miaob-panel-root .vocabulary-metrics > div:nth-child(2) { padding-left: 12px; }
 #miaob-panel-root .vocabulary-metrics strong { color: #26221e; font-size: 20px; font-weight: 650; line-height: 1.1; }
 #miaob-panel-root .vocabulary-metrics span { color: #8c8274; font-size: 11px; }
-#miaob-panel-root .vocabulary-readability-label { display: flex; align-items: baseline; gap: 5px; color: #6d6256; font-size: 12px; margin-bottom: 10px; }
-#miaob-panel-root .vocabulary-readability-label b { color: #4f8a67; font-weight: 650; }
-#miaob-panel-root .vocabulary-readability-label small { color: #a39a8f; font-size: 11px; }
+#miaob-panel-root .vocabulary-readability-label { display: flex; align-items: baseline; gap: 6px; margin-bottom: 8px; color: #6d6256; font-size: 12px; }
+#miaob-panel-root .vocabulary-readability-label span { color: #8c8274; font-size: 11px; letter-spacing: .02em; }
+#miaob-panel-root .vocabulary-readability-label b { color: #4f8a67; font-size: 13px; font-weight: 650; }
+#miaob-panel-root .vocabulary-readability-label small { margin-left: auto; color: #a39a8f; font-size: 10px; }
 #miaob-panel-root .vocabulary-kicker { color: #8c8274; font-size: 12px; margin-right: 4px; }
 #miaob-panel-root .vocabulary-readability { display: flex; justify-content: space-between; gap: 10px; color: #6d6256; font-size: 12px; }
 #miaob-panel-root .vocabulary-readability > div { display: flex; align-items: center; gap: 4px; }
@@ -169,11 +170,10 @@
 #miaob-panel-root .vocabulary-readability .easy-dot { background: #4f8a67; }
 #miaob-panel-root .vocabulary-readability .difficult-dot { background: #c47b52; }
 #miaob-panel-root .vocabulary-readability-track { display: flex; margin-top: 8px; }
-#miaob-panel-root .vocabulary-readability-track i, #miaob-panel-root .vocabulary-readability-track b { display: block; height: 100%; }
-#miaob-panel-root .vocabulary-readability-track i { background: #4f8a67; }
-#miaob-panel-root .vocabulary-readability-track b { background: #c47b52; }
-#miaob-panel-root .vocabulary-track { height: 6px; overflow: hidden; border-radius: 3px; background: #eee6db; }
-#miaob-panel-root .vocabulary-track i { display: block; height: 100%; border-radius: inherit; background: #9d3d32; transition: width .3s ease; }
+#miaob-panel-root .vocabulary-track { height: 8px; overflow: hidden; border-radius: 4px; background: #eee6db; }
+#miaob-panel-root .vocabulary-track i, #miaob-panel-root .vocabulary-track b { display: block; height: 100%; border-radius: inherit; }
+#miaob-panel-root .vocabulary-track.vocabulary-readability-track i { background: #4f8a67; transition: width .3s ease; }
+#miaob-panel-root .vocabulary-track.vocabulary-readability-track b { background: #c47b52; }
 
 #miaob-panel-root .empty-state {
   text-align: center;
@@ -474,6 +474,14 @@
   height: 24px;
 }
 
+#miaob-panel-root .activation-modes { display: flex; gap: 6px; margin-bottom: 14px; }
+#miaob-panel-root .activation-modes button { flex: 1; padding: 7px 0; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; color: #6b7280; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+#miaob-panel-root .activation-modes button:hover { border-color: #d1c4b8; color: #4b443b; }
+#miaob-panel-root .activation-modes button.active { border-color: #8C3D2B; background: #8C3D2B; color: #fff; }
+#miaob-panel-root .activation-form .email-code-row { display: flex; gap: 8px; }
+#miaob-panel-root .activation-form .email-code-row input { flex: 1; min-width: 0; }
+#miaob-panel-root .activation-form .email-code-row .submit-btn { flex: 0 0 auto; padding: 10px 14px; }
+#miaob-panel-root .activation-form .qrcode-img { width: 180px; height: 180px; margin: 0 auto; border-radius: 8px; }
 #miaob-panel-root .activation-form {
   display: flex;
   flex-direction: column;

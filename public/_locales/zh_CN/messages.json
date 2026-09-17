@@ -140,6 +140,9 @@
   "popupAct_email": {
     "message": "邮箱验证"
   },
+  "popupAct_emailHint": {
+    "message": "验证码将发送到您的邮箱，激活后 +100 积分"
+  },
   "popupAct_activated": {
     "message": "已激活"
   },
