@@ -19,6 +19,7 @@ export function PopupActivation({ credits, isActivated, onActivated }: PopupActi
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [emailSent, setEmailSent] = useState(false)
+  const [sentEmail, setSentEmail] = useState('')
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current) }, [])
@@ -70,7 +71,7 @@ export function PopupActivation({ credits, isActivated, onActivated }: PopupActi
     setQrUrl('')
   }
 
-  const sendCode = async () => { try { await userService.sendEmailCode(email.trim()); setEmailSent(true); setMsg(t('popupAct_codeSent')) } catch (e) { setMsg(e instanceof Error ? e.message : t('popupAct_sendFailed')) } }
+  const sendCode = async () => { try { await userService.sendEmailCode(email.trim()); setEmailSent(true); setSentEmail(email.trim().toLowerCase()); setMsg(t('popupAct_codeSent')) } catch (e) { setMsg(e instanceof Error ? e.message : t('popupAct_sendFailed')) } }
   const verifyCode = async () => { try { const result = await userService.verifyEmail(email.trim(), code.trim()); if (result.ok) { await chrome.storage.local.set({ credits: result.credits, isActivated: true }); setStatus('success'); setMsg('+100'); onActivated(result.credits) } } catch (e) { setMsg(e instanceof Error ? e.message : t('popupAct_verifyFailed')) } }
 
   // 已激活：header 内绿色徽章
@@ -124,7 +125,7 @@ export function PopupActivation({ credits, isActivated, onActivated }: PopupActi
             </p>
           </div>
         )}
-        {mode === 'email' && <div className="space-y-2"><input value={email} onChange={e => setEmail(e.target.value)} placeholder={t('popupAct_emailPlaceholder')} className="w-full border rounded px-3 py-2 text-sm" /><div className="flex gap-2"><input value={code} onChange={e => setCode(e.target.value)} placeholder={t('popupAct_codePlaceholder')} className="flex-1 border rounded px-3 py-2 text-sm" />{emailSent ? <button onClick={verifyCode} className="px-3 py-2 bg-blue-600 text-white rounded text-sm">{t('popupAct_verify')}</button> : <button onClick={sendCode} className="px-3 py-2 bg-blue-600 text-white rounded text-sm">{t('popupAct_sendCode')}</button>}</div></div>}
+        {mode === 'email' && <div className="space-y-2"><input value={email} onChange={e => { setEmail(e.target.value); if (emailSent && e.target.value.trim().toLowerCase() !== sentEmail) { setEmailSent(false); setCode(''); setMsg('') } }} placeholder={t('popupAct_emailPlaceholder')} className="w-full border rounded px-3 py-2 text-sm" /><div className="flex gap-2"><input value={code} onChange={e => setCode(e.target.value)} placeholder={t('popupAct_codePlaceholder')} className="flex-1 border rounded px-3 py-2 text-sm" />{emailSent ? <button onClick={verifyCode} className="px-3 py-2 bg-blue-600 text-white rounded text-sm">{t('popupAct_verify')}</button> : <button onClick={sendCode} className="px-3 py-2 bg-blue-600 text-white rounded text-sm">{t('popupAct_sendCode')}</button>}</div></div>}
 
         {status === 'error' && msg && (
           <div className="mt-2 text-sm text-red-600 text-center bg-red-50 p-2 rounded-lg">{msg}</div>

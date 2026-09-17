@@ -1,6 +1,6 @@
 {
   "name": "miaob-extension",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "description": "妙笔 - 中文阅读伴侣，发现中文文章中的成语、名句与表达高光",
   "type": "module",
   "scripts": {

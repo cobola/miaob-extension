@@ -383,7 +383,17 @@ async function fetchProxy(url: string, options?: RequestInit): Promise<any> {
     const response = await fetch(url, { ...options, headers, signal: controller.signal })
     if (!response.ok) {
       const errBody = await response.text().catch(() => '')
-      throw new Error(`HTTP ${response.status}${errBody ? ': ' + errBody.slice(0, 200) : ''}`)
+      let message = `HTTP ${response.status}`
+      if (errBody) {
+        try {
+          // 服务端 errJson 返回 { message }，直接展示友好文案而不是原始 JSON
+          const parsed = JSON.parse(errBody)
+          message = typeof parsed?.message === 'string' && parsed.message ? parsed.message : message + ': ' + errBody.slice(0, 200)
+        } catch {
+          message += ': ' + errBody.slice(0, 200)
+        }
+      }
+      throw new Error(message)
     }
     return await response.json()
   } catch (error) {

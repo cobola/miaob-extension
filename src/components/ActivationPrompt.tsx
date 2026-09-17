@@ -18,6 +18,7 @@ export function ActivationPrompt({ onActivated }: ActivationPromptProps) {
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
   const [emailSent, setEmailSent] = useState(false)
+  const [sentEmail, setSentEmail] = useState('')
 
   const startActivation = async () => {
     setIsExpanded(true)
@@ -81,6 +82,7 @@ export function ActivationPrompt({ onActivated }: ActivationPromptProps) {
     try {
       await userService.sendEmailCode(email.trim())
       setEmailSent(true)
+      setSentEmail(email.trim().toLowerCase())
     } catch (e) {
       setError(e instanceof Error ? e.message : t('popupAct_sendFailed'))
     }
@@ -146,7 +148,15 @@ export function ActivationPrompt({ onActivated }: ActivationPromptProps) {
           <input
             type="email"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={e => {
+              setEmail(e.target.value)
+              // 换了邮箱地址：旧验证码失效，允许重新发送验证码到新邮箱
+              if (emailSent && e.target.value.trim().toLowerCase() !== sentEmail) {
+                setEmailSent(false)
+                setCode('')
+                setError('')
+              }
+            }}
             placeholder={t('popupAct_emailPlaceholder')}
             autoComplete="email"
           />
