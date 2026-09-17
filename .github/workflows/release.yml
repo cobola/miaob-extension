@@ -34,10 +34,24 @@ jobs:
           zip -r ../miaob-extension-${{ github.ref_name }}.zip . -x "*.DS_Store"
           cd ..
 
+      - name: Extract changelog notes
+        run: |
+          VER="${GITHUB_REF_NAME#v}"
+          node -e "
+            const fs = require('fs')
+            const md = fs.readFileSync('CHANGELOG.md', 'utf8')
+            const tag = '## ' + process.argv[1]
+            const start = md.indexOf(tag)
+            if (start < 0) { fs.writeFileSync('release-notes.md', '## ' + process.argv[1]); process.exit(0) }
+            let end = md.indexOf('\n---', start)
+            if (end < 0) end = md.length
+            fs.writeFileSync('release-notes.md', md.slice(start, end).trim())
+          " "$VER"
+
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
           files: miaob-extension-*.zip
-          generate_release_notes: true
+          body_path: release-notes.md
           draft: false
           prerelease: false
