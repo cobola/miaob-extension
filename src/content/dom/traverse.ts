@@ -15,7 +15,9 @@ const SKIP_SELECTOR =
 
 /** 自家 UI：id/class 前缀统一是 miaob-，字符串判断比 closest 便宜一个数量级 */
 function isPluginElement(el: Element): boolean {
-  const id = el.id
+  // 必须用 getAttribute：<form> 的 el.id 会被名为 "id" 的控件命名访问覆盖成元素对象，
+  // 直接 el.id.indexOf 会抛 "i.indexOf is not a function"。
+  const id = el.getAttribute('id')
   if (id && id.indexOf('miaob-') === 0) return true
   const cls = el.getAttribute('class')
   return cls !== null && cls.indexOf('miaob-') !== -1
