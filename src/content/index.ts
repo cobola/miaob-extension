@@ -574,6 +574,22 @@ class MiaobContent {
   }
 
   /**
+   * 未激活用户无法记录发现 / 提交广场，先读本地激活态，
+   * 省得每轮页面检查都对 /api/game/discoveries、/api/square 打一串 403。
+   * 激活成功时 content 会把 isActivated 写回 storage，下一轮即生效。
+   */
+  private async isActivatedUser(): Promise<boolean> {
+    try {
+      const stored = await new Promise<{ isActivated?: boolean }>((resolve) =>
+        chrome.storage.local.get(['isActivated'], (r) => resolve(r as { isActivated?: boolean })),
+      )
+      return stored.isActivated === true
+    } catch {
+      return false
+    }
+  }
+
+  /**
    * 记录发现并显示通知
    */
   private async recordDiscoveries() {
@@ -586,6 +602,7 @@ class MiaobContent {
       .filter(i => i.text)
 
     if (items.length === 0) return
+    if (!(await this.isActivatedUser())) return
 
     try {
       const result = await discoveryService.recordDiscoveries(items)
@@ -604,6 +621,7 @@ class MiaobContent {
   private async submitToSquare() {
     const idiomFindings = this.allFindings.filter(f => f.kind === 'idiom' && f.idiom?.idiom)
     if (idiomFindings.length === 0) return
+    if (!(await this.isActivatedUser())) return
 
     const url = location.href
     const submittedKey = 'miaob_square_submitted_' + this.hashUrl(url)
