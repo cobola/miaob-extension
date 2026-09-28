@@ -113,6 +113,14 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     return true
   }
 
+  // 块级批量检查（整页/增量），只跑服务端本地规则 + 静态文化匹配
+  if (message.type === 'CHECK_BLOCKS') {
+    handleBlocksCheck(message.data)
+      .then(data => sendResponse({ success: true, data }))
+      .catch(error => sendResponse({ success: false, error: error.message }))
+    return true
+  }
+
   // LLM 直检（深度检查）
   if (message.type === 'CHECK_TEXT_LLM') {
     handleTextCheckLLM(message.data)
@@ -369,16 +377,27 @@ function showSelectionCard(data: {
 
 // ===== 激活 API 处理器（background 代理绕过 CORS） =====
 const API_TIMEOUT_MS = 30000 // 激活接口 30 秒超时
+/**
+ * 块批量检查的超时。别调小：`only` 含 expressions 时服务端要过 LLM，
+ * 单块就可能十几秒，10 秒会把正常请求掐死并弹"服务不可用"。
+ */
+const CHECK_BLOCKS_TIMEOUT_MS = 30000
 
 /** 通用 fetch 代理：自动注入超时、解析 JSON、统一错误 */
-async function fetchProxy(url: string, options?: RequestInit): Promise<any> {
+async function fetchProxy(url: string, options?: RequestInit, timeoutMs = API_TIMEOUT_MS): Promise<any> {
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), API_TIMEOUT_MS)
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
     const headers = new Headers(options?.headers || {})
     if (!headers.has('Authorization') && !url.endsWith('/api/extension/bootstrap')) {
-      const token = await ensureExtensionToken()
-      if (token) headers.set('Authorization', `Bearer ${token}`)
+      // 拿不到 token（bootstrap 失败、指纹算不出）不能把整个请求拖死——
+      // 服务端本来就接受无 token 的匿名请求
+      try {
+        const token = await ensureExtensionToken()
+        if (token) headers.set('Authorization', `Bearer ${token}`)
+      } catch (error) {
+        console.warn('[miaob] 获取扩展令牌失败，按匿名请求继续:', error)
+      }
     }
     const response = await fetch(url, { ...options, headers, signal: controller.signal })
     if (!response.ok) {
@@ -398,12 +417,53 @@ async function fetchProxy(url: string, options?: RequestInit): Promise<any> {
     return await response.json()
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new Error(`Request timeout (${API_TIMEOUT_MS / 1000}s)`)
+      throw new Error(`Request timeout (${timeoutMs / 1000}s)`)
     }
     throw error
   } finally {
     clearTimeout(timer)
   }
+}
+
+/**
+ * POST + 有限重试。
+ * 只重试 5xx/429：超时和 4xx 重试只会把总耗时翻倍，客户端 20 块一批已经很短。
+ */
+async function postJsonWithRetry(url: string, body: unknown, timeoutMs: number, attempts = 2): Promise<any> {
+  let lastError: unknown = null
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      return await fetchProxy(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      }, timeoutMs)
+    } catch (error) {
+      lastError = error
+      const message = error instanceof Error ? error.message : ''
+      const retryable = /^HTTP 5\d\d/.test(message) || message.startsWith('HTTP 429')
+      if (!retryable || attempt === attempts - 1) throw error
+      await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)))
+    }
+  }
+  throw lastError
+}
+
+/** 块级批量检查。服务端 blocks 协议，回传块内偏移 + hash。 */
+async function handleBlocksCheck(data: {
+  blocks: Array<{ id: string; hash?: string; text: string }>
+  only?: string[]
+  lang?: string
+}) {
+  if (!Array.isArray(data?.blocks) || data.blocks.length === 0) {
+    throw new Error('blocks is required')
+  }
+  const apiUrl = await getApiUrlCached()
+  return postJsonWithRetry(`${apiUrl}/api/check`, {
+    blocks: data.blocks,
+    only: data.only,
+    lang: data.lang || 'zh',
+  }, CHECK_BLOCKS_TIMEOUT_MS)
 }
 
 let extensionTokenPromise: Promise<string> | null = null

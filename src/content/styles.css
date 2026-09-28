@@ -177,6 +177,51 @@
   border-radius: 2px;
 }
 
+/*
+ * ===== CSS Custom Highlight 标注 =====
+ * 标注不再往页面里插 span，只往 CSS.highlights 塞 Range，页面 DOM 结构零改动。
+ * ::highlight() 只接受 color / background-color / text-decoration / stroke / fill / outline，
+ * 因此 cursor、padding、border-radius 这些在 span 版本里的属性这里给不了——
+ * 悬浮交互改由 hit-test 承担。
+ */
+::highlight(miaob-error) {
+  background-color: rgba(239, 68, 68, 0.10);
+  text-decoration: underline wavy #ef4444;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+::highlight(miaob-idiom) {
+  background-color: rgba(140, 61, 43, 0.08);
+  text-decoration: underline wavy #8c3d2b;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+::highlight(miaob-quote) {
+  background-color: rgba(16, 185, 129, 0.08);
+  text-decoration: underline wavy #10b981;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+::highlight(miaob-xiehouyu) {
+  background-color: rgba(245, 158, 11, 0.08);
+  text-decoration: underline wavy #f59e0b;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+::highlight(miaob-expression) {
+  background-color: rgba(245, 158, 11, 0.14);
+  text-decoration: underline wavy #f59e0b;
+  text-decoration-thickness: 2px;
+}
+
+::highlight(miaob-flash) {
+  background-color: rgba(251, 191, 36, 0.45);
+}
+
 
 /* 标注悬浮卡片内的查看更多链接 */
 .miaob-tooltip-link {

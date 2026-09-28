@@ -29,6 +29,12 @@ const maxPhraseLength = Math.max(...cultureData.quotes.map(([text]) => Array.fro
 
 function findMatches(text: string, maxLength: number, matcher: (candidate: string) => LocalIdiomMatch | LocalPhraseMatch | null) {
   const chars = Array.from(text)
+  // 码点下标 → UTF-16 下标。调用方拿 start/end 去 slice 块文本，
+  // 混用两套下标会让含 emoji / 生僻字（代理对）的文本标注错位。
+  const utf16: number[] = new Array(chars.length + 1)
+  utf16[0] = 0
+  for (let i = 0; i < chars.length; i++) utf16[i + 1] = utf16[i] + chars[i].length
+
   const found = new Set<number>()
   const results: Array<LocalIdiomMatch | LocalPhraseMatch> = []
 
@@ -43,7 +49,7 @@ function findMatches(text: string, maxLength: number, matcher: (candidate: strin
       }
       if (!overlaps) {
         for (let offset = 0; offset < length; offset++) found.add(start + offset)
-        results.push({ ...match, start, end: start + length })
+        results.push({ ...match, start: utf16[start], end: utf16[start + length] })
       }
       break
     }

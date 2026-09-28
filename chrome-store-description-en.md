@@ -22,7 +22,7 @@ Miaob identifies insightful, powerful, and memorable sentences — and points ou
 Click "Share discoveries" to generate a shareable link. Friends don't need the extension to see the article's best expressions and original link.
 
 **Save what you love**
-Collect your favorite idioms and quotes in your Miaoben notebook, and revisit them anytime.
+Collect your favorite idioms and quotes in your Quotebook, and revisit them anytime.
 
 **Bilingual interface**
 The UI automatically switches between Chinese and English to match your browser language — great for international readers.
@@ -63,7 +63,7 @@ For details: https://miaob.net/privacy
 - QR code added to share modal — scan with mobile to open share page
 - Expression voting — like and interact with great expressions
 - Optimized LLM analysis performance — instant response for cached content
-- Free users get 10 expression analyses per day; unlimited with Miaoben notebook
+- Free users get 10 expression analyses per day; unlimited with Quotebook
 
 **v0.8.2**
 

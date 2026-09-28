@@ -18,7 +18,7 @@
     "message": "Credits: $1"
   },
   "panel_miaoben": {
-    "message": "📖 Miaoben"
+    "message": "📖 Quotebook"
   },
   "panel_tabIdiom": {
     "message": "Idioms"
@@ -33,7 +33,7 @@
     "message": "Highlights"
   },
   "panel_quotaNotice": {
-    "message": "$1 expression analyses left today. Get Miaoben for unlimited use"
+    "message": "$1 expression analyses left today. Get Quotebook for unlimited use"
   },
   "panel_vocabAria": {
     "message": "Reading vocabulary stats for this page"
@@ -324,10 +324,10 @@
     "message": "🔗 ZDic details"
   },
   "ct_cardAdd": {
-    "message": "📋 Add to Miaoben"
+    "message": "📋 Add to Quotebook"
   },
   "ct_cardAdded": {
-    "message": "✓ Added to Miaoben"
+    "message": "✓ Added to Quotebook"
   },
   "ct_cardAddFail": {
     "message": "Failed to add. Please retry"
@@ -345,7 +345,7 @@
     "message": "Antonyms"
   },
   "ct_guideTitle": {
-    "message": "📖 Miaoben"
+    "message": "📖 Quotebook"
   },
   "ct_guideDesc": {
     "message": "Auto-save the idioms and quotes you meet while reading"
