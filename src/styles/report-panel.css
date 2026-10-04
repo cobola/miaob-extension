@@ -11,10 +11,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
   box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
   transition: all 0.3s ease;
   z-index: 999999;
+}
+
+#miaob-panel-root .miaob-panel-toggle.dragging,
+#miaob-panel-root .miaob-panel-toggle.dragging:hover {
+  transition: none;
+  transform: none;
+  cursor: grabbing;
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.5);
 }
 
 #miaob-panel-root .miaob-panel-toggle:hover {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { ActivationPrompt } from './ActivationPrompt'
 import '../styles/report-panel.css'
 import { ShareModal } from './ShareModal'
@@ -33,6 +33,21 @@ interface ReportPanelProps {
 
 const expressionLabels: Record<string, string> = { golden_sentence: t('ct_exprGolden'), parallelism: t('ct_exprParallelism'), contrast: t('ct_exprContrast'), rhetorical_question: t('ct_exprRhetorical'), numeric_impact: t('ct_exprNumeric'), metaphor: t('ct_exprMetaphor'), citation: t('ct_exprCitation') }
 
+// 悬浮圆钮尺寸 / 边距（与 report-panel.css 保持一致）
+const TOGGLE_SIZE = 56
+const EDGE_MARGIN = 8
+const PANEL_WIDTH = 400
+
+/** 把圆钮限制在视口内，避免拖出屏幕后找不回来 */
+function clampTogglePos(x: number, y: number) {
+  const vw = window.innerWidth || document.documentElement.clientWidth
+  const vh = window.innerHeight || document.documentElement.clientHeight
+  return {
+    x: Math.max(EDGE_MARGIN, Math.min(x, vw - TOGGLE_SIZE - EDGE_MARGIN)),
+    y: Math.max(EDGE_MARGIN, Math.min(y, vh - TOGGLE_SIZE - EDGE_MARGIN)),
+  }
+}
+
 export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressions = [], quota, vocabularyStats, onItemClick }: ReportPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [credits, setCredits] = useState(0)
@@ -47,6 +62,14 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
   const [voteLoading, setVoteLoading] = useState<Record<string, boolean>>({})
   // 预计算的 expression hash 列表（与 expressions 一一对应）
   const [exprHashes, setExprHashes] = useState<string[]>([])
+  // 悬浮圆钮拖拽位置（null = 默认右下角）；位置记忆跨页面 / 刷新
+  const [togglePos, setTogglePos] = useState<{ x: number; y: number } | null>(null)
+  const [viewport, setViewport] = useState({ w: window.innerWidth, h: window.innerHeight })
+  const [isDragging, setIsDragging] = useState(false)
+  const toggleRef = useRef<HTMLDivElement>(null)
+  const dragStateRef = useRef<{ pointerId: number; startX: number; startY: number; originX: number; originY: number; moved: boolean } | null>(null)
+  const didDragRef = useRef(false)
+  const latestPosRef = useRef<{ x: number; y: number } | null>(null)
 
   const handleShare = () => {
     setSharing(true)
@@ -183,6 +206,99 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
     else if (expressions.length > 0) setActiveTab('expression')
   }, [idioms.length, quotes.length, xiehouyu.length, expressions.length])
 
+  // 读取上次拖拽位置
+  useEffect(() => {
+    try {
+      chrome.storage?.local?.get?.(['miaobTogglePos'], (r) => {
+        const p = r?.miaobTogglePos as { x?: number; y?: number } | undefined
+        if (p && typeof p.x === 'number' && typeof p.y === 'number') {
+          const c = clampTogglePos(p.x, p.y)
+          latestPosRef.current = c
+          setTogglePos(c)
+        }
+      })
+    } catch { /* ignore */ }
+  }, [])
+
+  // 视口尺寸变化时把圆钮拉回可见范围
+  useEffect(() => {
+    const onResize = () => {
+      setViewport({ w: window.innerWidth, h: window.innerHeight })
+      setTogglePos((p) => {
+        if (!p) return p
+        const c = clampTogglePos(p.x, p.y)
+        latestPosRef.current = c
+        return c
+      })
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  // 悬浮圆钮拖拽：拖动超过阈值才算拖拽，否则仍视为点击开合面板
+  const onTogglePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    dragStateRef.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX, startY: e.clientY,
+      originX: rect.left, originY: rect.top,
+      moved: false,
+    }
+    didDragRef.current = false
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* ignore */ }
+  }
+
+  const onTogglePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = dragStateRef.current
+    if (!d || d.pointerId !== e.pointerId) return
+    const dx = e.clientX - d.startX
+    const dy = e.clientY - d.startY
+    if (!d.moved) {
+      if (Math.hypot(dx, dy) < 4) return
+      d.moved = true
+      didDragRef.current = true
+      setIsDragging(true)
+    }
+    if (e.cancelable) e.preventDefault()
+    const next = clampTogglePos(d.originX + dx, d.originY + dy)
+    latestPosRef.current = next
+    // 直接改 DOM 样式，拖动过程不触发整块面板重渲染，保证顺滑
+    const el = toggleRef.current
+    if (el) {
+      el.style.left = `${next.x}px`
+      el.style.top = `${next.y}px`
+      el.style.right = 'auto'
+      el.style.bottom = 'auto'
+    }
+  }
+
+  const endToggleDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = dragStateRef.current
+    if (!d || d.pointerId !== e.pointerId) return
+    dragStateRef.current = null
+    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch { /* ignore */ }
+    if (d.moved) {
+      setIsDragging(false)
+      const p = latestPosRef.current
+      if (p) {
+        setTogglePos(p)
+        try { chrome.storage?.local?.set?.({ miaobTogglePos: p }) } catch { /* ignore */ }
+      }
+    }
+  }
+
+  const handleToggleClick = () => {
+    if (didDragRef.current) { didDragRef.current = false; return }
+    setIsOpen(!isOpen)
+  }
+
+  // 面板从右侧滑出时，若圆钮会被盖住就临时挪到面板左侧（不改记忆位置）
+  const maxXForOpenPanel = Math.max(EDGE_MARGIN, viewport.w - PANEL_WIDTH - TOGGLE_SIZE - 12)
+  const effectiveTogglePos = togglePos
+    ? { x: isOpen ? Math.min(togglePos.x, maxXForOpenPanel) : togglePos.x, y: togglePos.y }
+    : null
+
   const tabs = [
     { key: 'idiom' as const, label: t('panel_tabIdiom'), count: idioms.length, color: '#8C3D2B' },
     { key: 'quote' as const, label: t('panel_tabQuote'), count: quotes.length, color: '#10b981' },
@@ -192,7 +308,16 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
 
   return (
     <>
-      <div className={`miaob-panel-toggle ${isOpen ? 'open' : ''}`} onClick={() => setIsOpen(!isOpen)}>
+      <div
+        ref={toggleRef}
+        className={`miaob-panel-toggle ${isOpen ? 'open' : ''} ${isDragging ? 'dragging' : ''}`}
+        style={effectiveTogglePos ? { left: effectiveTogglePos.x, top: effectiveTogglePos.y, right: 'auto', bottom: 'auto' } : undefined}
+        onPointerDown={onTogglePointerDown}
+        onPointerMove={onTogglePointerMove}
+        onPointerUp={endToggleDrag}
+        onPointerCancel={endToggleDrag}
+        onClick={handleToggleClick}
+      >
         <span className="icon">📝</span>
         {totalFindings > 0 && <span className="badge">{totalFindings}</span>}
       </div>
