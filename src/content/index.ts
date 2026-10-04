@@ -578,9 +578,9 @@ class MiaobContent {
   }
 
   /**
-   * 未激活用户无法记录发现 / 提交广场，先读本地激活态，
-   * 省得每轮页面检查都对 /api/game/discoveries、/api/square 打一串 403。
+   * 广场提交仍需激活（广场是社区行为，未激活不参与）。
    * 激活成功时 content 会把 isActivated 写回 storage，下一轮即生效。
+   * 注意：发现记录（recordDiscoveries）不再受此限制——未激活也记录，只是不给积分。
    */
   private async isActivatedUser(): Promise<boolean> {
     try {
@@ -606,11 +606,11 @@ class MiaobContent {
       .filter(i => i.text)
 
     if (items.length === 0) return
-    if (!(await this.isActivatedUser())) return
 
     try {
       const result = await discoveryService.recordDiscoveries(items)
-      if (result.newDiscoveries.length > 0) {
+      // 只有已激活用户才会拿到积分 / 弹出奖励通知；未激活用户静默记录
+      if (result.newDiscoveries.length > 0 && (await this.isActivatedUser())) {
         this.showDiscoveryNotification(result.newDiscoveries)
       }
     } catch (e) {
