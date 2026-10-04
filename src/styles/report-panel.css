@@ -61,6 +61,7 @@
   top: 0;
   width: 400px;
   height: 100vh;
+  height: 100dvh;
   background: white;
   box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
   transition: right 0.3s ease;
@@ -72,6 +73,14 @@
 
 #miaob-panel-root .miaob-panel.open {
   right: 0;
+}
+
+/* 手机端抽屉的把手与遮罩：仅移动端可见 */
+#miaob-panel-root .panel-sheet-handle {
+  display: none;
+}
+#miaob-panel-root .miaob-panel-overlay {
+  display: none;
 }
 
 #miaob-panel-root .panel-header {
@@ -763,4 +772,109 @@
   color: #92400e;
   font-size: 12px;
   line-height: 1.5;
+}
+
+/* ============================================================
+   手机端（窄屏）适配
+   桌面端不受影响；手机端把右侧滑出面板改成「底部抽屉」，
+   减少对文章内容的遮挡，并让圆钮更小、更贴边。
+   ============================================================ */
+@media (max-width: 640px) {
+  #miaob-panel-root .miaob-panel-toggle {
+    right: 12px;
+    bottom: 12px;
+    width: 44px;
+    height: 44px;
+  }
+  #miaob-panel-root .miaob-panel-toggle.open {
+    right: 12px;
+  }
+  #miaob-panel-root .miaob-panel-toggle .icon {
+    font-size: 20px;
+  }
+  #miaob-panel-root .miaob-panel-toggle .badge {
+    min-width: 18px;
+    font-size: 11px;
+    padding: 1px 5px;
+  }
+
+  /* 半透明遮罩：点它关闭抽屉 */
+  #miaob-panel-root .miaob-panel-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 999997;
+    background: rgba(0, 0, 0, 0.28);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  #miaob-panel-root .miaob-panel-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* 底部抽屉 */
+  #miaob-panel-root .miaob-panel {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 70vh;
+    height: 70dvh;
+    max-height: 70dvh;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.18);
+    transform: translateY(105%);
+    transition: transform 0.28s ease;
+    z-index: 999999;
+  }
+  #miaob-panel-root .miaob-panel.open {
+    right: 0;
+    transform: translateY(0);
+  }
+
+  /* 顶部把手：向下拖可关闭 */
+  #miaob-panel-root .panel-sheet-handle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 0 4px;
+    cursor: grab;
+    touch-action: none;
+  }
+  #miaob-panel-root .panel-sheet-handle-bar {
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: #d1d5db;
+  }
+
+  /* 头部在窄屏下允许换行，避免「妙笔本」按钮挤掉标题 */
+  #miaob-panel-root .panel-header {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  #miaob-panel-root .panel-header h3 {
+    font-size: 15px;
+    white-space: normal;
+  }
+  #miaob-panel-root .panel-content {
+    padding: 12px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  #miaob-panel-root .panel-footer {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  #miaob-panel-root .vocabulary-metrics strong {
+    font-size: 18px;
+  }
+
+  /* 分享弹窗铺满窄屏 */
+  #miaob-panel-root .share-modal {
+    width: calc(100vw - 24px);
+    padding: 18px;
+  }
 }

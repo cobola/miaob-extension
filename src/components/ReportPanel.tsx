@@ -174,8 +174,20 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
     }
   }, [voteStatusMap])
 
-  // 有发现时自动打开面板
+  // 手机端（窄屏）：面板改为底部抽屉，且不再有发现就自动弹出来遮挡文章
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 640px)').matches : false,
+  )
   useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)')
+    const onChange = () => setIsMobile(mq.matches)
+    mq.addEventListener?.('change', onChange)
+    return () => mq.removeEventListener?.('change', onChange)
+  }, [])
+
+  // 有发现时自动打开面板（仅桌面端；手机端靠圆钮角标提示，点了才展开）
+  useEffect(() => {
+    if (isMobile) return
     if (idioms.length + quotes.length + xiehouyu.length + expressions.length > 0 && !isOpen) {
       const hasOpened = sessionStorage.getItem('miaob_panel_opened')
       if (!hasOpened) {
@@ -183,7 +195,7 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
         sessionStorage.setItem('miaob_panel_opened', 'true')
       }
     }
-  }, [idioms.length, quotes.length, xiehouyu.length, expressions.length, isOpen])
+  }, [idioms.length, quotes.length, xiehouyu.length, expressions.length, isOpen, isMobile])
 
   const handleActivation = () => {
     setIsActivated(true)
@@ -295,9 +307,38 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
 
   // 面板从右侧滑出时，若圆钮会被盖住就临时挪到面板左侧（不改记忆位置）
   const maxXForOpenPanel = Math.max(EDGE_MARGIN, viewport.w - PANEL_WIDTH - TOGGLE_SIZE - 12)
+  // 手机端抽屉几乎全宽，圆钮没有地方可让，直接隐藏
   const effectiveTogglePos = togglePos
-    ? { x: isOpen ? Math.min(togglePos.x, maxXForOpenPanel) : togglePos.x, y: togglePos.y }
+    ? { x: isOpen && !isMobile ? Math.min(togglePos.x, maxXForOpenPanel) : togglePos.x, y: togglePos.y }
     : null
+
+  // 点条目：滚动定位到原文；手机端顺手收起点开的面板，露出文章
+  const handleItemClick = (text: string, type: 'idiom' | 'quote' | 'xiehouyu' | 'expression', start?: number, end?: number) => {
+    onItemClick?.(text, type, start, end)
+    if (isMobile) setIsOpen(false)
+  }
+
+  // 移动端抽屉：向下拖拽把手关闭
+  const sheetDragRef = useRef<{ pointerId: number; startY: number; moved: boolean } | null>(null)
+  const onSheetHandlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    sheetDragRef.current = { pointerId: e.pointerId, startY: e.clientY, moved: false }
+    try { e.currentTarget.setPointerCapture(e.pointerId) } catch { /* ignore */ }
+  }
+  const onSheetHandlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = sheetDragRef.current
+    if (!d || d.pointerId !== e.pointerId) return
+    if (e.clientY - d.startY > 60) {
+      d.moved = true
+      setIsOpen(false)
+      sheetDragRef.current = null
+    }
+  }
+  const onSheetHandlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const d = sheetDragRef.current
+    if (!d || d.pointerId !== e.pointerId) return
+    sheetDragRef.current = null
+    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch { /* ignore */ }
+  }
 
   const tabs = [
     { key: 'idiom' as const, label: t('panel_tabIdiom'), count: idioms.length, color: '#8C3D2B' },
@@ -317,12 +358,25 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
         onPointerUp={endToggleDrag}
         onPointerCancel={endToggleDrag}
         onClick={handleToggleClick}
+        hidden={isMobile && isOpen}
       >
         <span className="icon">📝</span>
         {totalFindings > 0 && <span className="badge">{totalFindings}</span>}
       </div>
 
+      {/* 手机端：抽屉下拉时点遮罩关闭 */}
+      <div className={`miaob-panel-overlay ${isOpen && isMobile ? 'open' : ''}`} onClick={() => setIsOpen(false)} />
+
       <div className={`miaob-panel ${isOpen ? 'open' : ''}`}>
+        <div
+          className="panel-sheet-handle"
+          onPointerDown={onSheetHandlePointerDown}
+          onPointerMove={onSheetHandlePointerMove}
+          onPointerUp={onSheetHandlePointerUp}
+          onPointerCancel={onSheetHandlePointerUp}
+        >
+          <span className="panel-sheet-handle-bar" />
+        </div>
         <div className="panel-header">
           <div className="panel-heading">
             <h3>{t('panel_welcome', userName || t('panel_friend'))}</h3>
@@ -368,7 +422,7 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
             ) : (
               <div className="report-list">
                 {idioms.map((i, idx) => (
-                  <div key={idx} className="report-item idiom-item" onClick={() => onItemClick?.(i.idiom, 'idiom')}>
+                  <div key={idx} className="report-item idiom-item" onClick={() => handleItemClick(i.idiom, 'idiom')}>
                       <span className="report-tag tag-idiom">{t('panel_tabIdiom')}</span>
                       <div className="report-content">
                         <span className="report-text">{i.idiom}</span>
@@ -386,7 +440,7 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
             ) : (
               <div className="report-list">
                 {quotes.map((q, idx) => (
-                  <div key={idx} className="report-item quote-item" onClick={() => onItemClick?.(q.text, 'quote')}>
+                  <div key={idx} className="report-item quote-item" onClick={() => handleItemClick(q.text, 'quote')}>
                     <span className="report-tag tag-quote">{t('panel_tabQuote')}</span>
                     <div className="report-content">
                       <span className="report-text">{q.text}</span>
@@ -403,7 +457,7 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
             ) : (
               <div className="report-list">
                 {xiehouyu.map((x, idx) => (
-                  <div key={idx} className="report-item xiehouyu-item" onClick={() => onItemClick?.(x.text, 'xiehouyu')}>
+                  <div key={idx} className="report-item xiehouyu-item" onClick={() => handleItemClick(x.text, 'xiehouyu')}>
                     <span className="report-tag tag-xiehouyu">{t('panel_tabXiehouyu')}</span>
                     <div className="report-content">
                       <span className="report-text">{x.text}</span>
@@ -417,7 +471,7 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
           {activeTab === 'expression' && (
             <div className="report-list">
               {expressions.map((e, idx) => (
-                <div key={idx} className="report-item expression-item" onClick={() => onItemClick?.(e.text, 'expression')}>
+                <div key={idx} className="report-item expression-item" onClick={() => handleItemClick(e.text, 'expression')}>
                   <div className="expression-sidebar">
                     <span className="report-tag tag-expression">{expressionLabels[e.type] || t('ct_exprHighlight')}</span>
                     <div className="vote-actions">
