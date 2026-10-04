@@ -530,6 +530,10 @@ class MiaobContent {
     if (anyFailed) {
       console.warn('[miaob] 本页有一批请求失败，展示服务不可用提示:', this.lastFailureReason || '未知原因')
       this.showServerUnavailable()
+    } else {
+      // 上一次可能只是瞬时失败（服务重启 / 网络抖动），本轮成功后要收起提示，
+      // 否则提示会一直挂在页面上，看起来像“服务器一直不可用”。
+      this.hideServerUnavailable()
     }
 
     // 记录发现（成语/名句/歇后语）并通知
@@ -1055,6 +1059,12 @@ class MiaobContent {
     }
     el.textContent = t('ct_serverUnavailable')
     el.style.display = 'block'
+  }
+
+  /** 收起服务端不可用提示（某轮检查成功后调用） */
+  private hideServerUnavailable() {
+    const el = document.getElementById('miaob-server-error')
+    if (el) el.style.display = 'none'
   }
 
   watchPageContent() {
