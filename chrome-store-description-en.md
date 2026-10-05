@@ -6,7 +6,7 @@ Browse Chinese web pages and automatically discover idioms, famous quotes, and h
 
 ## Discover the gems in Chinese articles
 
-Miaob is a Chrome extension for reading Chinese content. Open an article, and it will find the idioms, classic quotes, xiehouyu (Chinese riddles), and noteworthy expressions — gently highlighting them in the original text.
+Miaob is a Chrome extension for reading Chinese content. Open an article, and it will find the idioms, classic quotes, allegorical sayings, and noteworthy expressions — gently highlighting them in the original text.
 
 See an unfamiliar idiom? Look up its meaning and origin instantly. Find a beautifully written sentence? Save, copy, or share it with one click.
 
@@ -56,7 +56,7 @@ For details: https://miaob.net/privacy
 - Fully bilingual UI — panel, popup, annotations, and idiom cards auto-switch between Chinese and English
 - Email verification activation — activate with WeChat QR or email, whichever you prefer
 - New per-page reading stats: character count, unique characters, words, and reading level
-- Offline idiom, quote, and xiehouyu recognition works even when the server is unavailable
+- Offline idiom, quote, and allegorical-saying recognition works even when the server is unavailable
 
 **v0.9.0**
 
@@ -74,7 +74,7 @@ For details: https://miaob.net/privacy
 
 **v0.7.1**
 
-- Improved idiom, quote, and xiehouyu annotations
+- Improved idiom, quote, and allegorical-saying annotations
 - New reading report, favorites, and discovery rankings
 
 ---

@@ -3,7 +3,7 @@
     "message": "Miaob - Chinese Reading Companion"
   },
   "extensionDescription": {
-    "message": "Automatically highlights idioms, famous quotes and xiehouyu as you read Chinese web pages. Hover to see origins and meanings. Makes reading more enjoyable and insightful."
+    "message": "Automatically highlights idioms, famous quotes and allegorical sayings as you read Chinese web pages. Hover to see origins and meanings. Makes reading more enjoyable and insightful."
   },
   "panel_welcome": {
     "message": "Welcome to Miaob, $1!"
@@ -27,7 +27,7 @@
     "message": "Quotes"
   },
   "panel_tabXiehouyu": {
-    "message": "Xiehouyu"
+    "message": "Sayings"
   },
   "panel_tabExpression": {
     "message": "Highlights"
@@ -72,7 +72,7 @@
     "message": "No quotes yet"
   },
   "panel_emptyXiehouyu": {
-    "message": "No xiehouyu yet"
+    "message": "No allegorical sayings yet"
   },
   "panel_share": {
     "message": "📤 Share this page's findings"
@@ -261,10 +261,10 @@
     "message": "Check failed: $1"
   },
   "bg_noFindings": {
-    "message": "No idioms, quotes, or xiehouyu found"
+    "message": "No idioms, quotes, or allegorical sayings found"
   },
   "bg_foundCount": {
-    "message": "Found $1 idioms · $2 quotes/xiehouyu"
+    "message": "Found $1 idioms · $2 quotes/allegorical sayings"
   },
   "bg_idiom": {
     "message": "Idiom"
@@ -273,7 +273,7 @@
     "message": "Quote"
   },
   "bg_xiehouyu": {
-    "message": "Xiehouyu"
+    "message": "Allegorical saying"
   },
   "bg_contextMenuCheck": {
     "message": "Check selected text with Miaob"
@@ -303,7 +303,7 @@
     "message": "Quote"
   },
   "ct_tooltipXiehouyu": {
-    "message": "Xiehouyu"
+    "message": "Allegorical saying"
   },
   "ct_tooltipMore": {
     "message": "Click for more"
