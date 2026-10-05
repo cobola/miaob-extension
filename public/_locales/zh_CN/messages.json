@@ -403,5 +403,17 @@
   },
   "ct_exprHighlight": {
     "message": "表达高光"
+  },
+  "popup_checkinCta": {
+    "message": "今日签到 +5"
+  },
+  "popup_checkinBusy": {
+    "message": "签到中..."
+  },
+  "popup_checkinDone": {
+    "message": "今日已签到"
+  },
+  "popup_checkinDoneStreak": {
+    "message": "今日已签到 · 连续 $1 天"
   }
 }

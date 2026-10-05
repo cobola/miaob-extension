@@ -403,5 +403,17 @@
   },
   "ct_exprHighlight": {
     "message": "Expression highlight"
+  },
+  "popup_checkinCta": {
+    "message": "Check in today +5"
+  },
+  "popup_checkinBusy": {
+    "message": "Checking in..."
+  },
+  "popup_checkinDone": {
+    "message": "Today's check-in done"
+  },
+  "popup_checkinDoneStreak": {
+    "message": "Checked in · $1-day streak"
   }
 }

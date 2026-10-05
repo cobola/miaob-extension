@@ -7,6 +7,12 @@ import { t } from '../lib/i18n'
 // 获取扩展内资源的绝对 URL（popup 页面相对路径解析不同）
 const assetUrl = (p: string) => chrome.runtime.getURL(p)
 
+function todayStr() {
+  // 用本地日期，和服务端「按 UTC 日」略有偏差也无所谓：服务端才是权威，这里只用于置灰按钮
+  const d = new Date()
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+}
+
 function App() {
   const [config, setConfig] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -14,6 +20,10 @@ function App() {
   const [userId, setUserId] = useState('')
   const [credits, setCredits] = useState(0)
   const [isActivated, setIsActivated] = useState(false)
+  // 签到（克制版）：静默展示，不弹窗、不加红点
+  const [checkedInToday, setCheckedInToday] = useState(true)
+  const [checkinBusy, setCheckinBusy] = useState(false)
+  const [streak, setStreak] = useState(0)
 
   useEffect(() => {
     loadConfig()
@@ -21,21 +31,48 @@ function App() {
   }, [])
 
   const loadUser = () => {
-    chrome.storage.local.get(['userId', 'credits', 'isActivated'], (result) => {
+    chrome.storage.local.get(['userId', 'credits', 'isActivated', 'miaobLastCheckin', 'consecutiveDays'], (result) => {
       if (result.userId) setUserId(result.userId as string)
       if (result.credits !== undefined) setCredits(result.credits as number)
       if (result.isActivated !== undefined) setIsActivated(result.isActivated as boolean)
+      if (typeof result.consecutiveDays === 'number') setStreak(result.consecutiveDays)
+      setCheckedInToday(result.miaobLastCheckin === todayStr())
 
       // 从服务端拉取最新积分（异步更新缓存）
       if (result.userId) {
         userService.getUserProfile(result.userId as string)
           .then(profile => {
             setCredits(profile.credits)
-            chrome.storage.local.set({ credits: profile.credits })
+            if (typeof profile.consecutiveDays === 'number') setStreak(profile.consecutiveDays)
+            chrome.storage.local.set({ credits: profile.credits, consecutiveDays: profile.consecutiveDays })
           })
           .catch(() => {}) // 网络错误时保持缓存值
       }
     })
+  }
+
+  const handleCheckin = async () => {
+    if (checkinBusy || checkedInToday || !userId) return
+    setCheckinBusy(true)
+    try {
+      const res = await userService.dailyCheckin(userId)
+      if (res.alreadyCheckedIn) {
+        setCheckedInToday(true)
+      } else {
+        setCredits(res.credits)
+        setStreak(res.consecutiveDays)
+        setCheckedInToday(true)
+        chrome.storage.local.set({
+          credits: res.credits,
+          consecutiveDays: res.consecutiveDays,
+          miaobLastCheckin: todayStr(),
+        })
+      }
+    } catch {
+      // 静默失败，不打扰用户
+    } finally {
+      setCheckinBusy(false)
+    }
   }
 
   const handleActivated = (newCredits: number) => {
@@ -143,6 +180,21 @@ function App() {
           {t('popup_clearMarks')}
         </button>
       </div>
+
+      {/* 每日签到（克制版）：仅在已激活账号显示，静默、不弹窗 */}
+      {isActivated && (
+        <div className="popup-checkin">
+          {checkedInToday ? (
+            <span className="popup-checkin-done">
+              {streak > 0 ? t('popup_checkinDoneStreak', String(streak)) : t('popup_checkinDone')}
+            </span>
+          ) : (
+            <button className="popup-checkin-btn" onClick={handleCheckin} disabled={checkinBusy}>
+              {checkinBusy ? t('popup_checkinBusy') : t('popup_checkinCta')}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Settings */}
       <div className="popup-settings">
