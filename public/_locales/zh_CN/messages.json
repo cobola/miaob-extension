@@ -56,6 +56,18 @@
   "panel_levelHint": {
     "message": "普通中文读者估计"
   },
+  "panel_readability_smooth": {
+    "message": "基础阅读较顺畅"
+  },
+  "panel_readability_comfortable": {
+    "message": "一般读者基本可顺畅阅读"
+  },
+  "panel_readability_someVocab": {
+    "message": "需要一定词汇基础"
+  },
+  "panel_readability_manyNew": {
+    "message": "生字较多，建议边读边查"
+  },
   "panel_easyChars": {
     "message": "容易字"
   },
@@ -103,6 +115,15 @@
   },
   "share_open": {
     "message": "打开分享页"
+  },
+  "share_untitled": {
+    "message": "未命名文章"
+  },
+  "share_failed": {
+    "message": "分享失败："
+  },
+  "share_retry": {
+    "message": "请稍后重试"
   },
   "activation_cta": {
     "message": "📱 微信扫码激活 送 100 积分"
@@ -161,6 +182,9 @@
   "popupAct_success": {
     "message": "🎉 激活成功 $1"
   },
+  "popupAct_bonus": {
+    "message": "+100 积分"
+  },
   "popupAct_emailPlaceholder": {
     "message": "邮箱地址"
   },
@@ -217,6 +241,9 @@
   },
   "popup_tagline": {
     "message": "中文阅读伴侣"
+  },
+  "popup_brand": {
+    "message": "妙笔"
   },
   "popup_checking": {
     "message": "检查中..."
@@ -376,6 +403,9 @@
   },
   "ct_serverUnavailable": {
     "message": "妙笔服务器暂时不可用，请稍后再试"
+  },
+  "ct_connectFailed": {
+    "message": "无法连接检查服务"
   },
   "ct_titleSource": {
     "message": "出处：$1"

@@ -1,5 +1,7 @@
 import vocabulary from '../data-vocabulary.json'
 
+export type ReadabilityLevel = 'smooth' | 'comfortable' | 'someVocab' | 'manyNew'
+
 export interface VocabularyStats {
   totalChineseChars: number
   uniqueChineseChars: number
@@ -7,7 +9,7 @@ export interface VocabularyStats {
   easyChars: number
   difficultChars: number
   easyPercent: number
-  readability: string
+  readabilityLevel: ReadabilityLevel
 }
 
 const chineseCharPattern = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/
@@ -61,6 +63,6 @@ export function calculateVocabularyStats(text: string): VocabularyStats {
     easyChars: easyCount,
     difficultChars: uniqueChars.size - easyCount,
     easyPercent,
-    readability: easyPercent >= 90 ? '基础阅读较顺畅' : easyPercent >= 80 ? '一般读者基本可顺畅阅读' : easyPercent >= 65 ? '需要一定词汇基础' : '生字较多，建议边读边查',
+    readabilityLevel: easyPercent >= 90 ? 'smooth' : easyPercent >= 80 ? 'comfortable' : easyPercent >= 65 ? 'someVocab' : 'manyNew',
   }
 }

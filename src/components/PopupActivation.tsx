@@ -48,7 +48,7 @@ export function PopupActivation({ credits, isActivated, onActivated }: PopupActi
             if (result.ok) {
               if (result.extensionToken) await chrome.storage.local.set({ extensionToken: result.extensionToken, userId: result.userId })
               setStatus('success')
-              setMsg(`+100 积分`)
+              setMsg(t('popupAct_bonus'))
               onActivated(result.credits)
             }
           }

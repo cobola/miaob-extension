@@ -7,6 +7,16 @@ import { userService } from '../services/user.service'
 import { t } from '../lib/i18n'
 import type { VocabularyStats } from '../content/vocabulary-stats'
 
+// 阅读难度文案（英文/中文随浏览器语言切换）
+function readabilityLabel(level: VocabularyStats['readabilityLevel']): string {
+  switch (level) {
+    case 'smooth': return t('panel_readability_smooth')
+    case 'comfortable': return t('panel_readability_comfortable')
+    case 'someVocab': return t('panel_readability_someVocab')
+    case 'manyNew': return t('panel_readability_manyNew')
+  }
+}
+
 // 同步简单 hash（用于本地状态追踪，避免异步阻塞按钮）
 function simpleHash(str: string): string {
   let h = 0
@@ -83,7 +93,7 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
       ...xiehouyu.map(i => ({ type: 'xiehouyu', text: i.text, context: context(i.text), answer: i.answer || '' })),
       ...expressions.map(i => ({ type: i.type, text: i.text, context: context(i.text), score: i.score })),
     ]
-    chrome.runtime.sendMessage({ type: 'CREATE_SHARE', data: { title: document.title || '未命名文章', url: location.href, author, favicon, items } }, (response) => { setSharing(false); if (response?.success && response.data?.shareUrl) setShareUrl(response.data.shareUrl); else alert('分享失败：' + (response?.error || response?.data?.message || '请稍后重试')) })
+    chrome.runtime.sendMessage({ type: 'CREATE_SHARE', data: { title: document.title || t('share_untitled'), url: location.href, author, favicon, items } }, (response) => { setSharing(false); if (response?.success && response.data?.shareUrl) setShareUrl(response.data.shareUrl); else alert(t('share_failed') + (response?.error || response?.data?.message || t('share_retry'))) })
   }
 
   // 初始加载用户数据（只执行一次）
@@ -411,7 +421,7 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
                 <div><strong>{vocabularyStats.uniqueChineseChars.toLocaleString()}</strong><span>{t('panel_vocabUnique')}</span></div>
                 <div><strong>{vocabularyStats.uniqueWords.toLocaleString()}</strong><span>{t('panel_vocabWords')}</span></div>
               </div>
-              <div className="vocabulary-readability-label"><span>{t('panel_readingLevel')}</span><b>{vocabularyStats.readability}</b><small>{t('panel_levelHint')}</small></div>
+              <div className="vocabulary-readability-label"><span>{t('panel_readingLevel')}</span><b>{readabilityLabel(vocabularyStats.readabilityLevel)}</b><small>{t('panel_levelHint')}</small></div>
               <div className="vocabulary-readability"><div><span className="easy-dot" />{t('panel_easyChars')} <b>{vocabularyStats.easyChars}</b><small>{vocabularyStats.easyPercent}%</small></div><div><span className="difficult-dot" />{t('panel_maybeNewChars')} <b>{vocabularyStats.difficultChars}</b><small>{100 - vocabularyStats.easyPercent}%</small></div></div>
               <div className="vocabulary-track vocabulary-readability-track" aria-label={t('panel_trackAria', vocabularyStats.easyPercent, 100 - vocabularyStats.easyPercent)}><i style={{ width: `${vocabularyStats.easyPercent}%` }} /><b style={{ width: `${100 - vocabularyStats.easyPercent}%` }} /></div>
             </div>

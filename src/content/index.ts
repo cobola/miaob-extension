@@ -391,7 +391,7 @@ class MiaobContent {
     } catch (error) {
       this.marker.showServiceError(
         element,
-        error instanceof Error ? error.message : '无法连接检查服务'
+        error instanceof Error ? error.message : t('ct_connectFailed')
       )
     }
   }

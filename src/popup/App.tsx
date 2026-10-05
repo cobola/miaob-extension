@@ -145,9 +145,9 @@ function App() {
       {/* Header */}
       <div className="popup-header">
         <div className="flex items-center gap-3">
-          <img src={assetUrl('src/assets/icons/icon128.png')} alt="妙笔" className="w-10 h-10 rounded-full" />
+          <img src={assetUrl('src/assets/icons/icon128.png')} alt={t('popup_brand')} className="w-10 h-10 rounded-full" />
           <div>
-            <h1 className="text-lg font-bold text-gray-900">妙笔</h1>
+            <h1 className="text-lg font-bold text-gray-900">{t('popup_brand')}</h1>
             <p className="text-xs text-gray-500">{t('popup_tagline')}</p>
           </div>
         </div>

@@ -56,6 +56,18 @@
   "panel_levelHint": {
     "message": "Estimated for average Chinese readers"
   },
+  "panel_readability_smooth": {
+    "message": "Reads very smoothly"
+  },
+  "panel_readability_comfortable": {
+    "message": "Comfortable for most readers"
+  },
+  "panel_readability_someVocab": {
+    "message": "Needs a fair vocabulary"
+  },
+  "panel_readability_manyNew": {
+    "message": "Many new characters — look them up as you read"
+  },
   "panel_easyChars": {
     "message": "Easy chars"
   },
@@ -103,6 +115,15 @@
   },
   "share_open": {
     "message": "Open shared page"
+  },
+  "share_untitled": {
+    "message": "Untitled article"
+  },
+  "share_failed": {
+    "message": "Share failed: "
+  },
+  "share_retry": {
+    "message": "Please try again later"
   },
   "activation_cta": {
     "message": "📱 Activate via WeChat · +100 credits"
@@ -161,6 +182,9 @@
   "popupAct_success": {
     "message": "🎉 Activated $1"
   },
+  "popupAct_bonus": {
+    "message": "+100 credits"
+  },
   "popupAct_emailPlaceholder": {
     "message": "Email address"
   },
@@ -217,6 +241,9 @@
   },
   "popup_tagline": {
     "message": "Chinese reading companion"
+  },
+  "popup_brand": {
+    "message": "Miaob"
   },
   "popup_checking": {
     "message": "Checking…"
@@ -376,6 +403,9 @@
   },
   "ct_serverUnavailable": {
     "message": "Miaob server is temporarily unavailable. Please try again later"
+  },
+  "ct_connectFailed": {
+    "message": "Cannot reach the check service"
   },
   "ct_titleSource": {
     "message": "Source: $1"
