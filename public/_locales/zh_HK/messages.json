@@ -1,0 +1,449 @@
+{
+  "extensionName": {
+    "message": "妙筆 - 中文閱讀伴侶"
+  },
+  "extensionDescription": {
+    "message": "瀏覽中文網頁時自動發現成語、名句和文章高光，點選檢視解釋、出處與上下文，還能收藏和分享。"
+  },
+  "panel_welcome": {
+    "message": "歡迎使用妙筆，$1！"
+  },
+  "panel_friend": {
+    "message": "朋友"
+  },
+  "panel_idPrefix": {
+    "message": "ID: $1"
+  },
+  "panel_credits": {
+    "message": "積分：$1"
+  },
+  "panel_miaoben": {
+    "message": "📖 妙筆本"
+  },
+  "panel_tabIdiom": {
+    "message": "成語"
+  },
+  "panel_tabQuote": {
+    "message": "名句"
+  },
+  "panel_tabXiehouyu": {
+    "message": "歇後語"
+  },
+  "panel_tabExpression": {
+    "message": "表達高光"
+  },
+  "panel_quotaNotice": {
+    "message": "今日表達分析剩餘 $1 次，開通妙筆本後可無限使用"
+  },
+  "panel_vocabAria": {
+    "message": "本頁閱讀詞彙統計"
+  },
+  "panel_vocabKicker": {
+    "message": "閱讀概覽"
+  },
+  "panel_vocabChars": {
+    "message": "字數"
+  },
+  "panel_vocabUnique": {
+    "message": "去重字"
+  },
+  "panel_vocabWords": {
+    "message": "詞語"
+  },
+  "panel_readingLevel": {
+    "message": "閱讀難度"
+  },
+  "panel_levelHint": {
+    "message": "普通中文讀者估計"
+  },
+  "panel_readability_smooth": {
+    "message": "基礎閱讀較順暢"
+  },
+  "panel_readability_comfortable": {
+    "message": "一般讀者基本可順暢閱讀"
+  },
+  "panel_readability_someVocab": {
+    "message": "需要一定詞彙基礎"
+  },
+  "panel_readability_manyNew": {
+    "message": "生字較多，建議邊讀邊查"
+  },
+  "panel_easyChars": {
+    "message": "容易字"
+  },
+  "panel_maybeNewChars": {
+    "message": "可能生字"
+  },
+  "panel_trackAria": {
+    "message": "容易字 $1%，可能生字 $2%"
+  },
+  "panel_emptyIdioms": {
+    "message": "暫無成語"
+  },
+  "panel_emptyQuotes": {
+    "message": "暫無名句"
+  },
+  "panel_emptyXiehouyu": {
+    "message": "暫無歇後語"
+  },
+  "panel_share": {
+    "message": "📤 分享本頁發現"
+  },
+  "panel_generating": {
+    "message": "生成中…"
+  },
+  "panel_voteUp": {
+    "message": "點贊"
+  },
+  "credits_label": {
+    "message": "積分"
+  },
+  "share_success": {
+    "message": "📤 分享成功！"
+  },
+  "share_qrAlt": {
+    "message": "掃碼分享"
+  },
+  "share_hint": {
+    "message": "掃描二維碼分享"
+  },
+  "share_copied": {
+    "message": "已複製"
+  },
+  "share_copyLink": {
+    "message": "複製連結"
+  },
+  "share_open": {
+    "message": "開啟分享頁"
+  },
+  "share_untitled": {
+    "message": "未命名文章"
+  },
+  "share_failed": {
+    "message": "分享失敗："
+  },
+  "share_retry": {
+    "message": "請稍後重試"
+  },
+  "activation_cta": {
+    "message": "📱 微信掃碼啟用 送 100 積分"
+  },
+  "activation_title": {
+    "message": "微信掃碼啟用"
+  },
+  "activation_qrAlt": {
+    "message": "微信掃碼啟用"
+  },
+  "activation_waitScan": {
+    "message": "請使用微信掃碼"
+  },
+  "activation_scanned": {
+    "message": "掃碼成功，正在啟用..."
+  },
+  "activation_binding": {
+    "message": "正在繫結賬號..."
+  },
+  "activation_success": {
+    "message": "🎉 啟用成功，獲得 100 積分！"
+  },
+  "activation_loadingQr": {
+    "message": "正在載入二維碼..."
+  },
+  "activation_failed": {
+    "message": "啟用失敗"
+  },
+  "popupAct_title": {
+    "message": "賬號啟用"
+  },
+  "popupAct_wechat": {
+    "message": "微信掃碼"
+  },
+  "popupAct_email": {
+    "message": "郵箱驗證"
+  },
+  "popupAct_emailHint": {
+    "message": "驗證碼將傳送到您的郵箱，啟用後 +100 積分"
+  },
+  "popupAct_activated": {
+    "message": "已啟用"
+  },
+  "popupAct_qrFail": {
+    "message": "二維碼載入失敗"
+  },
+  "popupAct_waitScan": {
+    "message": "請使用微信掃碼"
+  },
+  "popupAct_scanned": {
+    "message": "掃碼成功，登入中..."
+  },
+  "popupAct_activating": {
+    "message": "正在啟用..."
+  },
+  "popupAct_success": {
+    "message": "🎉 啟用成功 $1"
+  },
+  "popupAct_bonus": {
+    "message": "+100 積分"
+  },
+  "popupAct_emailPlaceholder": {
+    "message": "郵箱地址"
+  },
+  "popupAct_codePlaceholder": {
+    "message": "驗證碼"
+  },
+  "popupAct_verify": {
+    "message": "驗證"
+  },
+  "popupAct_sendCode": {
+    "message": "傳送驗證碼"
+  },
+  "popupAct_codeSent": {
+    "message": "驗證碼已傳送，請查收郵件"
+  },
+  "popupAct_sendFailed": {
+    "message": "傳送失敗"
+  },
+  "popupAct_verifyFailed": {
+    "message": "驗證失敗"
+  },
+  "popupAct_pollFailed": {
+    "message": "輪詢掃碼狀態失敗"
+  },
+  "popupAct_qrGetFailed": {
+    "message": "獲取二維碼失敗"
+  },
+  "err_typo": {
+    "message": "錯別字"
+  },
+  "err_grammar": {
+    "message": "語法錯誤"
+  },
+  "err_punctuation": {
+    "message": "標點錯誤"
+  },
+  "err_sensitive": {
+    "message": "規範用詞"
+  },
+  "err_redundant": {
+    "message": "冗餘表達"
+  },
+  "err_collocation": {
+    "message": "搭配不當"
+  },
+  "fb_correct": {
+    "message": "檢測正確 +2 積分"
+  },
+  "fb_incorrect": {
+    "message": "檢測錯誤 +5 積分"
+  },
+  "popup_loading": {
+    "message": "載入中..."
+  },
+  "popup_tagline": {
+    "message": "中文閱讀伴侶"
+  },
+  "popup_brand": {
+    "message": "妙筆"
+  },
+  "popup_checking": {
+    "message": "檢查中..."
+  },
+  "popup_checkPage": {
+    "message": "檢查頁面"
+  },
+  "popup_clearMarks": {
+    "message": "清除標註"
+  },
+  "popup_enableCheck": {
+    "message": "啟用檢查"
+  },
+  "popup_autoCheck": {
+    "message": "自動檢查"
+  },
+  "popup_checkOnBlur": {
+    "message": "失焦時檢查"
+  },
+  "popup_shortcut": {
+    "message": "快捷鍵 Ctrl+Shift+E"
+  },
+  "marker_summary": {
+    "message": "發現 $1 處問題"
+  },
+  "marker_more": {
+    "message": "還有 $1 處問題未展開"
+  },
+  "marker_noService": {
+    "message": "妙筆未連線到檢查服務: $1"
+  },
+  "marker_suggestion": {
+    "message": "建議：$1"
+  },
+  "marker_fix": {
+    "message": "修復"
+  },
+  "bg_cardTitle": {
+    "message": "妙筆檢查"
+  },
+  "bg_checkFailed": {
+    "message": "檢查失敗：$1"
+  },
+  "bg_noFindings": {
+    "message": "未發現成語、名句或歇後語"
+  },
+  "bg_foundCount": {
+    "message": "發現 $1 個成語 · $2 個名句/歇後語"
+  },
+  "bg_idiom": {
+    "message": "成語"
+  },
+  "bg_quote": {
+    "message": "名句"
+  },
+  "bg_xiehouyu": {
+    "message": "歇後語"
+  },
+  "bg_contextMenuCheck": {
+    "message": "妙筆檢查這段文字"
+  },
+  "bg_contextMenuSettings": {
+    "message": "設定"
+  },
+  "bg_httpError": {
+    "message": "檢查失敗 (HTTP $1)"
+  },
+  "bg_timeout": {
+    "message": "檢查超時（LLM 校驗超過 120 秒）"
+  },
+  "bg_noTab": {
+    "message": "未找到當前標籤頁"
+  },
+  "ct_firstDiscovery": {
+    "message": "首位發現"
+  },
+  "ct_nthDiscovery": {
+    "message": "第$1個發現"
+  },
+  "ct_points": {
+    "message": "+$1積分"
+  },
+  "ct_tooltipQuote": {
+    "message": "名句"
+  },
+  "ct_tooltipXiehouyu": {
+    "message": "歇後語"
+  },
+  "ct_tooltipMore": {
+    "message": "點選檢視更多"
+  },
+  "ct_tooltipLink": {
+    "message": "檢視更多 → $1"
+  },
+  "ct_cardLoading": {
+    "message": "載入中…"
+  },
+  "ct_cardLoadFail": {
+    "message": "載入失敗，請稍後重試"
+  },
+  "ct_cardClose": {
+    "message": "關閉"
+  },
+  "ct_cardZdic": {
+    "message": "🔗 漢典詳解"
+  },
+  "ct_cardAdd": {
+    "message": "📋 加入妙筆本"
+  },
+  "ct_cardAdded": {
+    "message": "✓ 已加入妙筆本"
+  },
+  "ct_cardAddFail": {
+    "message": "加入失敗，請重試"
+  },
+  "ct_cardMeaning": {
+    "message": "釋義"
+  },
+  "ct_cardDerivation": {
+    "message": "出處"
+  },
+  "ct_cardSynonym": {
+    "message": "同義"
+  },
+  "ct_cardAntonym": {
+    "message": "反義"
+  },
+  "ct_guideTitle": {
+    "message": "📖 妙筆本"
+  },
+  "ct_guideDesc": {
+    "message": "自動收藏你閱讀中遇到的成語、名句，隨時溫習"
+  },
+  "ct_guideLoadingQr": {
+    "message": "載入二維碼中..."
+  },
+  "ct_guideHint": {
+    "message": "微信掃碼啟用，送 100 積分，可無限收藏"
+  },
+  "ct_guideLoadFail": {
+    "message": "載入失敗，請重新整理重試"
+  },
+  "ct_guideQrFail": {
+    "message": "二維碼獲取失敗"
+  },
+  "ct_guideQrAlt": {
+    "message": "微信掃碼"
+  },
+  "ct_guideScanned": {
+    "message": "✓ 掃碼成功，啟用中..."
+  },
+  "ct_guideSuccess": {
+    "message": "🎉 啟用成功！+100 積分"
+  },
+  "ct_guideFail": {
+    "message": "啟用失敗，請重試"
+  },
+  "ct_serverUnavailable": {
+    "message": "妙筆伺服器暫時不可用，請稍後再試"
+  },
+  "ct_connectFailed": {
+    "message": "無法連線檢查服務"
+  },
+  "ct_titleSource": {
+    "message": "出處：$1"
+  },
+  "ct_exprGolden": {
+    "message": "金句"
+  },
+  "ct_exprParallelism": {
+    "message": "排比"
+  },
+  "ct_exprContrast": {
+    "message": "對比"
+  },
+  "ct_exprRhetorical": {
+    "message": "設問"
+  },
+  "ct_exprNumeric": {
+    "message": "數字衝擊"
+  },
+  "ct_exprMetaphor": {
+    "message": "比喻"
+  },
+  "ct_exprCitation": {
+    "message": "引用"
+  },
+  "ct_exprHighlight": {
+    "message": "表達高光"
+  },
+  "popup_checkinCta": {
+    "message": "今日簽到 +5"
+  },
+  "popup_checkinBusy": {
+    "message": "簽到中..."
+  },
+  "popup_checkinDone": {
+    "message": "今日已簽到"
+  },
+  "popup_checkinDoneStreak": {
+    "message": "今日已簽到 · 連續 $1 天"
+  }
+}

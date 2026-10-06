@@ -1,5 +1,6 @@
 import cultureData from '../data-culture.json'
 import idiomDetails from '../data-idiom-details.json'
+import { toSimplified } from '../lib/script-conversion'
 
 export interface LocalIdiomMatch {
   idiom: string
@@ -28,7 +29,9 @@ const maxIdiomLength = Math.max(...cultureData.idioms.map(word => Array.from(wor
 const maxPhraseLength = Math.max(...cultureData.quotes.map(([text]) => Array.from(text).length), ...cultureData.xiehouyu.map(([text]) => Array.from(text).length))
 
 function findMatches(text: string, maxLength: number, matcher: (candidate: string) => LocalIdiomMatch | LocalPhraseMatch | null) {
-  const chars = Array.from(text)
+  // 词典只有简体：把原文「繁 -> 简」等长归一化后再匹配，命中的下标可原样落回原文。
+  const normalized = toSimplified(text)
+  const chars = Array.from(normalized)
   // 码点下标 → UTF-16 下标。调用方拿 start/end 去 slice 块文本，
   // 混用两套下标会让含 emoji / 生僻字（代理对）的文本标注错位。
   const utf16: number[] = new Array(chars.length + 1)
@@ -49,7 +52,12 @@ function findMatches(text: string, maxLength: number, matcher: (candidate: strin
       }
       if (!overlaps) {
         for (let offset = 0; offset < length; offset++) found.add(start + offset)
-        results.push({ ...match, start: utf16[start], end: utf16[start + length] })
+        const startU16 = utf16[start]
+        const endU16 = utf16[start + length]
+        // 展示用原文切片（繁体页显示繁体），词典详情保持简体，由渲染层按字形转换
+        const original = text.slice(startU16, endU16)
+        const enriched = 'idiom' in match ? { ...match, idiom: original } : { ...match, text: original }
+        results.push({ ...enriched, start: startU16, end: endU16 })
       }
       break
     }

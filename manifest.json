@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "0.15.4",
+  "version": "0.16.0",
   "minimum_chrome_version": "105",
   "description": "__MSG_extensionDescription__",
   "default_locale": "zh_CN",
@@ -20,7 +20,7 @@
     "type": "module"
   },
   "action": {
-    "default_title": "妙笔",
+    "default_title": "__MSG_popup_brand__",
     "default_icon": {
       "16": "src/assets/icons/icon16.png",
       "48": "src/assets/icons/icon48.png",

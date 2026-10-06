@@ -1,4 +1,5 @@
 import vocabulary from '../data-vocabulary.json'
+import { toSimplified } from '../lib/script-conversion'
 
 export type ReadabilityLevel = 'smooth' | 'comfortable' | 'someVocab' | 'manyNew'
 
@@ -50,9 +51,11 @@ function findWords(text: string): string[] {
 }
 
 export function calculateVocabularyStats(text: string): VocabularyStats {
-  const chars = Array.from(text).filter(char => chineseCharPattern.test(char))
+  // 词汇表是简体，繁体页先等长归一化再统计
+  const normalized = toSimplified(text)
+  const chars = Array.from(normalized).filter(char => chineseCharPattern.test(char))
   const uniqueChars = new Set(chars)
-  const words = findWords(text)
+  const words = findWords(normalized)
   const uniqueWords = [...new Set(words)]
   const easyCount = [...uniqueChars].filter(char => easyChars.has(char)).length
   const easyPercent = uniqueChars.size ? Math.round(easyCount / uniqueChars.size * 100) : 0

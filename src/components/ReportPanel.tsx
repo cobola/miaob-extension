@@ -5,6 +5,7 @@ import { ShareModal } from './ShareModal'
 import { expressionVoteService } from '../services/expression-vote.service'
 import { userService } from '../services/user.service'
 import { t } from '../lib/i18n'
+import { localizeScript } from '../lib/script-conversion'
 import type { VocabularyStats } from '../content/vocabulary-stats'
 
 // 阅读难度文案（英文/中文随浏览器语言切换）
@@ -436,8 +437,8 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
                       <span className="report-tag tag-idiom">{t('panel_tabIdiom')}</span>
                       <div className="report-content">
                         <span className="report-text">{i.idiom}</span>
-                        {i.explanation && <span className="report-note">{i.explanation.slice(0, 42)}</span>}
-                        {!i.explanation && i.derivation && <span className="report-note">{i.derivation.slice(0, 30)}</span>}
+                        {i.explanation && <span className="report-note">{localizeScript(i.explanation).slice(0, 42)}</span>}
+                        {!i.explanation && i.derivation && <span className="report-note">{localizeScript(i.derivation).slice(0, 30)}</span>}
                       </div>
                   </div>
                 ))}
@@ -454,7 +455,7 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
                     <span className="report-tag tag-quote">{t('panel_tabQuote')}</span>
                     <div className="report-content">
                       <span className="report-text">{q.text}</span>
-                      {q.from && <span className="report-note"> — {q.from}</span>}
+                      {q.from && <span className="report-note"> — {localizeScript(q.from)}</span>}
                     </div>
                   </div>
                 ))}
@@ -471,7 +472,7 @@ export function ReportPanel({ idioms = [], quotes = [], xiehouyu = [], expressio
                     <span className="report-tag tag-xiehouyu">{t('panel_tabXiehouyu')}</span>
                     <div className="report-content">
                       <span className="report-text">{x.text}</span>
-                      {x.answer && <span className="report-note"> — {x.answer}</span>}
+                      {x.answer && <span className="report-note"> — {localizeScript(x.answer)}</span>}
                     </div>
                   </div>
                 ))}

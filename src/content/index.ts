@@ -14,6 +14,7 @@ import { createElement } from 'react'
 import { calculateVocabularyStats, VocabularyStats } from './vocabulary-stats'
 import idiomDetails from '../data-idiom-details.json'
 import { t } from '../lib/i18n'
+import { localizeScript, toSimplified } from '../lib/script-conversion'
 import { Annotator } from './annotate/annotator'
 import { collectBlocks, resetBlockState } from './dom/block'
 import { RenderCache } from './dom/traverse'
@@ -810,11 +811,11 @@ class MiaobContent {
     if (rec.kind === 'quote') {
       url = `https://so.gushiwen.cn/search.aspx?value=${encodeURIComponent(phrase.text)}&type=title`
       label = t('ct_tooltipQuote')
-      body = phrase.from ? t('ct_titleSource', phrase.from) : t('ct_tooltipQuote')
+      body = phrase.from ? t('ct_titleSource', localizeScript(phrase.from)) : t('ct_tooltipQuote')
     } else {
       url = `https://www.xiehouyu.cn/search.php?keyword=${encodeURIComponent(phrase.text)}`
       label = t('ct_tooltipXiehouyu')
-      body = phrase.answer ? `${phrase.text}——${phrase.answer}` : t('ct_tooltipXiehouyu')
+      body = phrase.answer ? `${phrase.text}——${localizeScript(phrase.answer)}` : t('ct_tooltipXiehouyu')
     }
 
     let parsed: URL
@@ -908,9 +909,10 @@ class MiaobContent {
   }
 
   private findLocalIdiomDetail(idiom: string): { idiom: string; pinyin: string; explanation: string } | null {
-    const match = (idiomDetails as Record<string, { pinyin?: string; explanation?: string }>)[idiom]
+    // 详情词典按简体存储：繁体成语名先归一化再查
+    const match = (idiomDetails as Record<string, { pinyin?: string; explanation?: string }>)[toSimplified(idiom)]
     if (!match) return null
-    return { idiom, pinyin: match.pinyin || '', explanation: match.explanation || '' }
+    return { idiom, pinyin: match.pinyin || '', explanation: localizeScript(match.explanation || '') }
   }
 
   private renderIdiomCard(card: HTMLElement, data: any) {
@@ -922,10 +924,10 @@ class MiaobContent {
     header.append(title, pinyin, close); card.appendChild(header)
     const body = document.createElement('div'); body.className = 'miaob-card-body'
     const addSection = (label: string, value: unknown) => { if (!value) return; const section = document.createElement('section'); section.className = 'miaob-card-section'; const l = document.createElement('div'); l.className = 'miaob-card-label'; l.textContent = label; const v = document.createElement('div'); v.textContent = String(value); section.append(l, v); body.appendChild(section) }
-    addSection(t('ct_cardMeaning'), data.explanation); addSection(t('ct_cardDerivation'), data.derivation)
+    addSection(t('ct_cardMeaning'), localizeScript(data.explanation)); addSection(t('ct_cardDerivation'), localizeScript(data.derivation))
     const relations = data.relations || { synonyms: data.synonym || [], antonyms: data.antonym || [] }
     const relationBox = document.createElement('div'); relationBox.className = 'miaob-card-relations'
-    const addRelations = (label: string, values: unknown[], type: string) => { if (!Array.isArray(values) || !values.length) return; const group = document.createElement('div'); group.className = 'miaob-card-rel-group'; const l = document.createElement('div'); l.className = 'miaob-card-label'; l.textContent = label; const items = document.createElement('div'); items.className = 'miaob-card-rel-items'; values.slice(0, 8).forEach(value => { const b = document.createElement('button'); b.type = 'button'; b.className = 'miaob-card-rel-item'; b.textContent = String(value); b.onclick = () => { const found = this.findAnnotation(String(value), type); if (found) this.scrollToAnnotation(String(value), type); else this.openRelatedIdiom(String(value), card) }; items.appendChild(b) }); group.append(l, items); relationBox.appendChild(group) }
+    const addRelations = (label: string, values: unknown[], type: string) => { if (!Array.isArray(values) || !values.length) return; const group = document.createElement('div'); group.className = 'miaob-card-rel-group'; const l = document.createElement('div'); l.className = 'miaob-card-label'; l.textContent = label; const items = document.createElement('div'); items.className = 'miaob-card-rel-items'; values.slice(0, 8).forEach(value => { const b = document.createElement('button'); b.type = 'button'; b.className = 'miaob-card-rel-item'; b.textContent = localizeScript(String(value)); b.onclick = () => { const found = this.findAnnotation(String(value), type); if (found) this.scrollToAnnotation(String(value), type); else this.openRelatedIdiom(String(value), card) }; items.appendChild(b) }); group.append(l, items); relationBox.appendChild(group) }
     addRelations(t('ct_cardSynonym'), relations.synonyms, 'idiom'); addRelations(t('ct_cardAntonym'), relations.antonyms, 'idiom'); if (relationBox.childElementCount) body.appendChild(relationBox); card.appendChild(body)
     const footer = document.createElement('div'); footer.className = 'miaob-card-footer'; const link = document.createElement('a'); link.className = 'miaob-card-link'; link.textContent = t('ct_cardZdic'); link.href = typeof data.zdicUrl === 'string' && data.zdicUrl ? data.zdicUrl : `https://www.zdic.net/hans/${encodeURIComponent(data.idiom || '')}`; link.target = '_blank'; link.rel = 'noopener noreferrer'; footer.appendChild(link)
     const add = document.createElement('button'); add.type = 'button'; add.className = 'miaob-card-add'; add.textContent = t('ct_cardAdd'); add.onclick = () => { add.disabled = true; chrome.runtime.sendMessage({ type: 'ADD_MIAOBEN', idiom: data.idiom, sourceUrl: location.href }, (response) => { if (response?.needsActivation) { this.showActivationGuide(card, data.idiom, add); add.disabled = false; add.textContent = t('ct_cardAdd') } else { add.disabled = false; add.textContent = response?.success ? t('ct_cardAdded') : t('ct_cardAddFail') } }) }; footer.appendChild(add); card.appendChild(footer)
